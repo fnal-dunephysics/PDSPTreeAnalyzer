@@ -1,6 +1,5 @@
 #include "AnalyzerCore.h"
-#include "FLUKANtuple.h"
-#include "GEANT4Ntuple.h"
+#include "PDSPTree.h"
 
 AnalyzerCore::AnalyzerCore(){
   MaxEvent = -1;
@@ -131,138 +130,182 @@ Event AnalyzerCore::GetEvent(){
 
 }
 
-std::vector<Gen> AnalyzerCore::GetAllParticles(){
-  
-  std::vector<Gen> out;
-  // -- Save particle vector with using proper class for each Simulator (GEANT4, FLUKA ...)
-  return out;
-  
-}
+std::vector<Daughter> AnalyzerCore::GetAllDaughters(){
 
-std::vector<Gen> AnalyzerCore::GetAllParticles_GEANT4(){
 
-  std::vector<Gen> out;
-  for(unsigned int i=0; i< this_GEANT4Ntuple.PDGcode->size(); i++){
-    Gen current_particle;
-    current_particle.SetPIDPosition(this_GEANT4Ntuple.PDGcode->at(i), this_GEANT4Ntuple.X->at(i), this_GEANT4Ntuple.Y->at(i), this_GEANT4Ntuple.Z->at(i));
-    current_particle.SetPxPyPzE(this_GEANT4Ntuple.Px->at(i) / 1000., this_GEANT4Ntuple.Py->at(i) / 1000., this_GEANT4Ntuple.Pz->at(i) / 1000., this_GEANT4Ntuple.E->at(i) / 1000.); // MeV to GeV
-    current_particle.SetInterType(this_GEANT4Ntuple.interType->at(i));
+  // ==== Beam related variables                                                             
+  TVector3 reco_beam_end(evt.reco_beam_endX, evt.reco_beam_endY, evt.reco_beam_endZ);
+  TVector3 reco_unit_beam(evt.reco_beam_allTrack_trackDirX, evt.reco_beam_allTrack_trackDirY, evt.reco_beam_allTrack_trackDirZ);
+  reco_unit_beam = (1. / reco_unit_beam.Mag() ) * reco_unit_beam;
 
-    out.push_back(current_particle);
+  vector<Daughter> out;
+  //cout << "[PionXsec::GetAllRecoDaughters] evt.reco_daughter_allTrack_ID->size() : " << evt.reco_daughter_allTrack_ID->size() << endl;
+  for (size_t i = 0; i < evt.reco_daughter_allTrack_ID->size(); i++){
+    if((*evt.reco_daughter_allTrack_dQdX_SCE)[i].empty()) continue;
+
+    Daughter this_Daughter;
+    //cout << "[PionXsec::GetAllDaughters] i : " << i << endl;
+    this_Daughter.SetIsEmpty(false);
+    if(evt.MC){
+      this_Daughter.Set_PFP_true_byHits_PDG((*evt.reco_daughter_PFP_true_byHits_PDG).at(i));
+      this_Daughter.Set_PFP_true_byHits_ID((*evt.reco_daughter_PFP_true_byHits_ID).at(i));
+      this_Daughter.Set_PFP_true_byHits_origin((*evt.reco_daughter_PFP_true_byHits_origin).at(i));
+      this_Daughter.Set_PFP_true_byHits_parID((*evt.reco_daughter_PFP_true_byHits_parID).at(i));
+      this_Daughter.Set_PFP_true_byHits_parPDG((*evt.reco_daughter_PFP_true_byHits_parPDG).at(i));
+      this_Daughter.Set_PFP_true_byHits_process((*evt.reco_daughter_PFP_true_byHits_process).at(i));
+      this_Daughter.Set_PFP_true_byHits_sharedHits((*evt.reco_daughter_PFP_true_byHits_sharedHits).at(i));
+      this_Daughter.Set_PFP_true_byHits_emHits((*evt.reco_daughter_PFP_true_byHits_emHits).at(i));
+      this_Daughter.Set_PFP_true_byHits_len((*evt.reco_daughter_PFP_true_byHits_len).at(i));
+      this_Daughter.Set_PFP_true_byHits_startX((*evt.reco_daughter_PFP_true_byHits_startX).at(i));
+      this_Daughter.Set_PFP_true_byHits_startY((*evt.reco_daughter_PFP_true_byHits_startY).at(i));
+      this_Daughter.Set_PFP_true_byHits_startZ((*evt.reco_daughter_PFP_true_byHits_startZ).at(i));
+      this_Daughter.Set_PFP_true_byHits_endX((*evt.reco_daughter_PFP_true_byHits_endX).at(i));
+      this_Daughter.Set_PFP_true_byHits_endY((*evt.reco_daughter_PFP_true_byHits_endY).at(i));
+      this_Daughter.Set_PFP_true_byHits_endZ((*evt.reco_daughter_PFP_true_byHits_endZ).at(i));
+      this_Daughter.Set_PFP_true_byHits_startPx((*evt.reco_daughter_PFP_true_byHits_startPx).at(i));
+      this_Daughter.Set_PFP_true_byHits_startPy((*evt.reco_daughter_PFP_true_byHits_startPy).at(i));
+      this_Daughter.Set_PFP_true_byHits_startPz((*evt.reco_daughter_PFP_true_byHits_startPz).at(i));
+      this_Daughter.Set_PFP_true_byHits_startP((*evt.reco_daughter_PFP_true_byHits_startP).at(i));
+      this_Daughter.Set_PFP_true_byHits_startE((*evt.reco_daughter_PFP_true_byHits_startE).at(i));
+      this_Daughter.Set_PFP_true_byHits_endProcess((*evt.reco_daughter_PFP_true_byHits_endProcess).at(i));
+      this_Daughter.Set_PFP_true_byHits_purity((*evt.reco_daughter_PFP_true_byHits_purity).at(i));
+      this_Daughter.Set_PFP_true_byHits_completeness((*evt.reco_daughter_PFP_true_byHits_completeness).at(i));
+      this_Daughter.Set_PFP_true_byE_PDG((*evt.reco_daughter_PFP_true_byE_PDG).at(i));
+      this_Daughter.Set_PFP_true_byE_len((*evt.reco_daughter_PFP_true_byE_len).at(i));
+    }
+
+    this_Daughter.Set_PFP_ID((*evt.reco_daughter_PFP_ID).at(i));
+    this_Daughter.Set_PFP_nHits((*evt.reco_daughter_PFP_nHits).at(i));
+    this_Daughter.Set_PFP_nHits_collection((*evt.reco_daughter_PFP_nHits_collection).at(i));
+    this_Daughter.Set_PFP_trackScore((*evt.reco_daughter_PFP_trackScore).at(i));
+    this_Daughter.Set_PFP_emScore((*evt.reco_daughter_PFP_emScore).at(i));
+    this_Daughter.Set_PFP_michelScore((*evt.reco_daughter_PFP_michelScore).at(i));
+    this_Daughter.Set_PFP_trackScore_collection((*evt.reco_daughter_PFP_trackScore_collection).at(i));
+    this_Daughter.Set_PFP_emScore_collection((*evt.reco_daughter_PFP_emScore_collection).at(i));
+    this_Daughter.Set_PFP_michelScore_collection((*evt.reco_daughter_PFP_michelScore_collection).at(i));
+    this_Daughter.Set_allTrack_ID((*evt.reco_daughter_allTrack_ID).at(i));
+    this_Daughter.Set_allTrack_EField_SCE((*evt.reco_daughter_allTrack_EField_SCE).at(i));
+    this_Daughter.Set_allTrack_resRange_SCE((*evt.reco_daughter_allTrack_resRange_SCE).at(i));
+    this_Daughter.Set_allTrack_resRange_SCE_plane0((*evt.reco_daughter_allTrack_resRange_plane0).at(i)); // == FIXME, to SCE
+    this_Daughter.Set_allTrack_resRange_SCE_plane1((*evt.reco_daughter_allTrack_resRange_plane1).at(i)); // == FIXME, to SCE
+    this_Daughter.Set_allTrack_calibrated_dEdX_SCE((*evt.reco_daughter_allTrack_calibrated_dEdX_SCE).at(i));
+    this_Daughter.Set_allTrack_calibrated_dEdX_SCE_plane0((*evt.reco_daughter_allTrack_calibrated_dEdX_SCE_plane0).at(i));
+    this_Daughter.Set_allTrack_calibrated_dEdX_SCE_plane1((*evt.reco_daughter_allTrack_calibrated_dEdX_SCE_plane1).at(i));
+    this_Daughter.Set_allTrack_Chi2_proton((*evt.reco_daughter_allTrack_Chi2_proton).at(i));
+    this_Daughter.Set_allTrack_Chi2_pion((*evt.reco_daughter_allTrack_Chi2_pion).at(i));
+    this_Daughter.Set_allTrack_Chi2_muon((*evt.reco_daughter_allTrack_Chi2_muon).at(i));
+    this_Daughter.Set_allTrack_Chi2_ndof((*evt.reco_daughter_allTrack_Chi2_ndof).at(i));
+    this_Daughter.Set_allTrack_Chi2_ndof_pion((*evt.reco_daughter_allTrack_Chi2_ndof_pion).at(i));
+    this_Daughter.Set_allTrack_Chi2_ndof_muon((*evt.reco_daughter_allTrack_Chi2_ndof_muon).at(i));
+    this_Daughter.Set_allTrack_Theta((*evt.reco_daughter_allTrack_Theta).at(i));
+    this_Daughter.Set_allTrack_Phi((*evt.reco_daughter_allTrack_Phi).at(i));
+    // == FIXME
+    //this_Daughter.Set_allTrack_startDirX((*evt.reco_daughter_allTrack_startDirX).at(i));
+    //this_Daughter.Set_allTrack_startDirY((*evt.reco_daughter_allTrack_startDirY).at(i));
+    //this_Daughter.Set_allTrack_startDirZ((*evt.reco_daughter_allTrack_startDirZ).at(i));
+    this_Daughter.Set_allTrack_alt_len((*evt.reco_daughter_allTrack_alt_len).at(i));
+    this_Daughter.Set_allTrack_startX((*evt.reco_daughter_allTrack_startX).at(i));
+    this_Daughter.Set_allTrack_startY((*evt.reco_daughter_allTrack_startY).at(i));
+    this_Daughter.Set_allTrack_startZ((*evt.reco_daughter_allTrack_startZ).at(i));
+    this_Daughter.Set_allTrack_endX((*evt.reco_daughter_allTrack_endX).at(i));
+    this_Daughter.Set_allTrack_endY((*evt.reco_daughter_allTrack_endY).at(i));
+    this_Daughter.Set_allTrack_endZ((*evt.reco_daughter_allTrack_endZ).at(i));
+    this_Daughter.Set_allTrack_vertex_michel_score((*evt.reco_daughter_allTrack_vertex_michel_score).at(i));
+    this_Daughter.Set_allTrack_vertex_nHits((*evt.reco_daughter_allTrack_vertex_nHits).at(i));
+    this_Daughter.Set_pandora_type((*evt.reco_daughter_pandora_type).at(i));
+
+    TVector3 unit_daughter((*evt.reco_daughter_allTrack_endX).at(i) - (*evt.reco_daughter_allTrack_startX).at(i),
+                           (*evt.reco_daughter_allTrack_endY).at(i) - (*evt.reco_daughter_allTrack_startY).at(i),
+                           (*evt.reco_daughter_allTrack_endZ).at(i) - (*evt.reco_daughter_allTrack_startZ).at(i) );
+    unit_daughter = (1./ unit_daughter.Mag() ) * unit_daughter;
+    double cos_theta = cos(unit_daughter.Angle(reco_unit_beam));
+    this_Daughter.Set_Beam_Cos(cos_theta);
+
+    TVector3 reco_daughter_start((*evt.reco_daughter_allTrack_startX).at(i), (*evt.reco_daughter_allTrack_startY).at(i), (*evt.reco_daughter_allTrack_startZ).at(i) );
+    double dist_beam_end = (reco_daughter_start - reco_beam_end).Mag();
+    this_Daughter.Set_Beam_Dist(dist_beam_end);
+
+    out.push_back(this_Daughter);
   }
 
   return out;
 }
 
-std::vector<Gen> AnalyzerCore::GetAllParticles_FLUKA(){
-  
-  std::vector<Gen> out;
-  // -- Push beam first
-  if(this_FLUKANtuple.NIneHits >0){
-    Gen current_beam;
-    current_beam.SetPIDPosition(this_FLUKANtuple.IdIne[0], this_FLUKANtuple.PosIne[0][0], this_FLUKANtuple.PosIne[0][1], this_FLUKANtuple.PosIne[0][2]);
-    current_beam.SetPxPyPzE(this_FLUKANtuple.PIne[0][0], this_FLUKANtuple.PIne[0][1], this_FLUKANtuple.PIne[0][2], this_FLUKANtuple.PIne[0][3]);
-    current_beam.SetInterType(this_FLUKANtuple.TypeIne[0]);
-    out.push_back(current_beam);
-  }
+std::vector<Daughter> AnalyzerCore::GetPions(const vector<Daughter> in){
 
-  // -- Push secondary particles
-  const unsigned int N_secondary_particles = this_FLUKANtuple.NSecIne[0];
-  for(unsigned int i=0; i < N_secondary_particles; i++){
-    Gen current_particle;
-    current_particle.SetPIDPosition(this_FLUKANtuple.IdSecIne[i], this_FLUKANtuple.PosIne[0][0], this_FLUKANtuple.PosIne[0][1], this_FLUKANtuple.PosIne[0][2]);
-    current_particle.SetPxPyPzE(this_FLUKANtuple.PSec[i][0], this_FLUKANtuple.PSec[i][1], this_FLUKANtuple.PSec[i][2], this_FLUKANtuple.PSec[i][3]);
-    current_particle.SetInterType(this_FLUKANtuple.TypeIne[0]);
+  vector<Daughter> out;
 
-    out.push_back(current_particle);
-  }
-
-  return out;
-
-}
-
-std::vector<Gen> AnalyzerCore::GetPiplus(const std::vector<Gen>& particles, double min_P){
-
-  std::vector<Gen> out;
-  for(unsigned int i=0; i<particles.size(); i++){
-    if(particles.at(i).PID() == 211 && particles.at(i).P() > min_P) out.push_back(particles.at(i));
-  }
-
-  return out;
-}
-
-std::vector<Gen> AnalyzerCore::GetPiminus(const std::vector<Gen>& particles, double min_P){
-
-  std::vector<Gen> out;
-  for(unsigned int i=0; i<particles.size(); i++){
-    if(particles.at(i).PID() == -211 && particles.at(i).P() > min_P) out.push_back(particles.at(i));
-  }
-
-  return out;
-}
-
-std::vector<Gen> AnalyzerCore::GetProtons(const std::vector<Gen>& particles, double min_P){
-
-  std::vector<Gen> out;
-  for(unsigned int i=0; i<particles.size(); i++){
-    if(particles.at(i).PID() == 2212 && particles.at(i).P() > min_P) out.push_back(particles.at(i));
-  }
-
-  std::sort(out.begin(), out.end(), PComparing);
-  return out;
-}
-
-std::vector<Gen> AnalyzerCore::GetNeutrons(const std::vector<Gen>& particles, double min_P){
-
-  std::vector<Gen> out;
-  for(unsigned int i=0; i<particles.size(); i++){
-    if(particles.at(i).PID() == 2112 && particles.at(i).P() > min_P) out.push_back(particles.at(i));
-  }
-
-  std::sort(out.begin(), out.end(), PComparing);
-  return out;
-}
-
-std::vector<Gen> AnalyzerCore::GetPizeros(const std::vector<Gen>& particles, double min_P){
-
-  std::vector<Gen> out;
-  for(unsigned int i=0; i<particles.size(); i++){
-    if(particles.at(i).PID() == 111 && particles.at(i).P() > min_P) out.push_back(particles.at(i));
-  }
-
-  std::sort(out.begin(), out.end(), PComparing);
-  return out;
-}
-
-std::vector<Gen> AnalyzerCore::GetBkgParticles(const std::vector<Gen>& particles, double min_P){
-  // == Collect : pi- (-111), Kaon +- (+- 321), K0 (321), muon (+- 13)
-
-  std::vector<Gen> out;
-  for(unsigned int i=0; i<particles.size(); i++){
-    if(particles.at(i).PID() == -211 || abs(particles.at(i).PID()) == 321 || abs(particles.at(i).PID()) == 13){ 
-      if(particles.at(i).P() > min_P) out.push_back(particles.at(i));
+  double cut_cos_beam = 0.95;
+  double cut_beam_dist = 10.;
+  double cut_trackScore = 0.5;
+  double cut_emScore = 0.5;
+  double cut_chi2_proton = 60.;
+  double cut_startZ = 220.;
+  int cut_Nhit = 20;
+  for(unsigned int i = 0; i < in.size(); i++){
+    Daughter this_in = in.at(i);
+    double this_chi2 = this_in.allTrack_Chi2_proton() / this_in.allTrack_Chi2_ndof();
+    if(this_in.PFP_trackScore() > cut_trackScore && this_in.PFP_emScore() < cut_emScore && this_chi2 > cut_chi2_proton
+       && this_in.PFP_nHits() > cut_Nhit && this_in.Beam_Cos() < cut_cos_beam && this_in.Beam_Dist() < cut_beam_dist && this_in.allTrack_startZ() < cut_startZ){
+      out.push_back(this_in);
     }
   }
 
   return out;
 }
 
-std::vector<Gen> AnalyzerCore::GetNuclei(const std::vector<Gen>& particles){
+std::vector<Daughter> AnalyzerCore::GetProtons(const vector<Daughter> in){
 
-  std::vector<Gen> out;
-  if(Simulator.Contains("GEANT")){
-    for(unsigned int i=0; i<particles.size(); i++){
-      if(particles.at(i).PID() > 1000000000) out.push_back(particles.at(i));
-    }
-  }
-  if(Simulator.Contains("FLUKA")){
-    for(unsigned int i=0; i<particles.size(); i++){
-      if(particles.at(i).PID() > 9000) out.push_back(particles.at(i));
+  vector<Daughter> out;
+
+  double cut_cos_beam =0.95;
+  double cut_beam_dist = 10.;
+  double cut_trackScore = 0.5;
+  double cut_emScore = 0.5;
+  double cut_chi2_proton = 50.;
+  int cut_Nhit = 20;
+  for(unsigned int i = 0; i < in.size(); i++){
+    Daughter this_in = in.at(i);
+    double this_chi2 = this_in.allTrack_Chi2_proton() /this_in.allTrack_Chi2_ndof();
+    if(this_in.PFP_trackScore() > cut_trackScore && this_in.PFP_emScore() < cut_emScore && this_chi2 < cut_chi2_proton && this_in.PFP_nHits() > cut_Nhit && this_in.Beam_Cos() < cut_cos_beam && this_in.Beam_Dist() < cut_beam_dist){
+      out.push_back(this_in);
     }
   }
 
   return out;
 }
+
+std::vector<Daughter> AnalyzerCore::GetTruePions(const vector<Daughter> in){
+
+  vector<Daughter> out;
+
+  for(unsigned int i = 0; i < in.size(); i++){
+    Daughter this_in = in.at(i);
+    int this_true_PID = this_in.PFP_true_byHits_PDG();
+    if(abs(this_true_PID) == 211){
+      out.push_back(this_in);
+    }
+  }
+
+  return out;
+}
+
+std::vector<Daughter> AnalyzerCore::GetTrueProtons(const vector<Daughter> in){
+
+  vector<Daughter> out;
+
+  for(unsigned int i = 0; i < in.size(); i++){
+    Daughter this_in = in.at(i);
+    int this_true_PID = this_in.PFP_true_byHits_PDG();
+    if(this_true_PID == 2212){
+      out.push_back(this_in);
+    }
+  }
+
+  return out;
+}
+
+
 //==================
 // Initialize
 //==================

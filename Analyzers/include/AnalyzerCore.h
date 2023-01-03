@@ -10,7 +10,8 @@
 #include "TRandom.h"
 
 #include "PDSPTree.h"
-//#include "Event.h"
+#include "Event.h"
+#include "Daughter.h"
 //#include "Particle.h"
 //#include "Gen.h"
 
@@ -35,7 +36,7 @@ public:
   Long64_t MaxEvent, NSkipEvent;
   int LogEvery;
   TString MCSample;
-  TString Simulator;
+  TString Beam_Momentum;
   vector<TString> Userflags;
 
   bool debug_mode = false;
@@ -94,28 +95,19 @@ public:
   Event GetEvent();
 
   std::vector<Gen> GetAllParticles();
-  std::vector<Gen> GetAllParticles_GEANT4();
-  std::vector<Gen> GetAllParticles_FLUKA();
-  std::vector<Gen> GetPiplus(const std::vector<Gen>& particles, double min_P);
-  std::vector<Gen> GetPiminus(const std::vector<Gen>& particles, double min_P);
-  std::vector<Gen> GetProtons(const std::vector<Gen>& particles, double min_P);
   std::vector<Gen> GetNeutrons(const std::vector<Gen>& particles, double min_P);
-  std::vector<Gen> GetPizeros(const std::vector<Gen>& particles, double min_P);
-  std::vector<Gen> GetBkgParticles(const std::vector<Gen>& particles, double min_P);
-  std::vector<Gen> GetNuclei(const std::vector<Gen>& particles);
 
   //==================
   // Tools
   //==================
-  SmearParticles *smear;
+  MCCorrection MCCorr;
+  GEANT4_XS G4Xsec;
   void initializeAnalyzerTools();
 
   //==================
   // Functions
   //==================
-  int GetAtomicNumber(int pid);
-  int GetAtomicMass(int pid);
-
+  
 
   //===Plotting
   std::map< TString, TH1D* > maphist_TH1D;
