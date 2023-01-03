@@ -3,7 +3,7 @@ export PDSPAna_LIB_PATH=$PDSPAna_WD/lib/
 mkdir -p $PDSPAna_LIB_PATH
 mkdir -p $PDSPAna_WD/tar
 
-export PDSPAnaV="Run1_v1"
+export PDSPAnaV="v1"
 mkdir -p $PDSPAna_WD/data/$PDSPAnaV
 export DATA_DIR=$PDSPAna_WD/data/$PDSPAnaV
 

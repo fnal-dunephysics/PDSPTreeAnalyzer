@@ -1,0 +1,7 @@
+#Type	Type	PID	Processes	Rootfilename    	Histname	Type
+Xsec	KE	pion	total_inel	pion_xsec_1GeV.root	total_inel_KE	TGraph
+Xsec	KE	pion	absorbtion	pion_xsec_1GeV.root	abs_KE		TGraph
+Xsec	KE	pion	CEx		pion_xsec_1GeV.root	cex_KE		TGraph
+Xsec	KE	pion	DoubleCEx	pion_xsec_1GeV.root	dcex_KE		TGraph
+Xsec	KE	pion	PionProd	pion_xsec_1GeV.root	prod_KE		TGraph
+Xsec	KE	pion	QE		pion_xsec_1GeV.root	inel_KE		TGraph

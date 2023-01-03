@@ -1,0 +1,2 @@
+#Type	Type	Flag	        Rootfile			                Histname	Type
+Beam	SF	TrkLength	Reweighting_pion_TrkLength_noweight.root	Reweight	TH1D
