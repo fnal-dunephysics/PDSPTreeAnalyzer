@@ -12,8 +12,9 @@
 #include "PDSPTree.h"
 #include "Event.h"
 #include "Daughter.h"
-//#include "Particle.h"
-//#include "Gen.h"
+#include "BetheBloch.h"
+#include "GEANT4_XS.h"
+#include "MCCorrection.h"
 
 #define M_Z 91.1876
 #define M_W 80.379
@@ -100,6 +101,7 @@ public:
   //==================
   // Tools
   //==================
+  std::map< int, BetheBloch* > map_BB;
   MCCorrection MCCorr;
   GEANT4_XS G4Xsec;
   void initializeAnalyzerTools();

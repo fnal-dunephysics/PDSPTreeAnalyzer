@@ -5,9 +5,8 @@
 #pragma link off all functions;
 #pragma link C++ nestedclasses;
 
-#pragma link C++ class GEANT4Ntuple+;
-#pragma link C++ class FLUKANtuple+;
+#pragma link C++ class PDSPTree+;
 #pragma link C++ class AnalyzerCore+;
-#pragma link C++ class PionAnalyzer+;
+#pragma link C++ class PionKEScale+;
 
 #endif

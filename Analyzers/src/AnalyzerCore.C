@@ -9,7 +9,10 @@ AnalyzerCore::AnalyzerCore(){
   Simulator = "";
   Userflags.clear();
   outfile = NULL;
-  smear = new SmearParticles();
+  map_BB[13] = new BetheBloch(13);
+  map_BB[211] = new BetheBloch(211);
+  map_BB[321] = new BetheBloch(321);
+  map_BB[2212] = new BetheBloch(2212);
 }
 
 AnalyzerCore::~AnalyzerCore(){
@@ -130,8 +133,10 @@ Event AnalyzerCore::GetEvent(){
 
 }
 
+//==================
+// Get Daughters
+//==================
 std::vector<Daughter> AnalyzerCore::GetAllDaughters(){
-
 
   // ==== Beam related variables                                                             
   TVector3 reco_beam_end(evt.reco_beam_endX, evt.reco_beam_endY, evt.reco_beam_endZ);
@@ -305,6 +310,10 @@ std::vector<Daughter> AnalyzerCore::GetTrueProtons(const vector<Daughter> in){
   return out;
 }
 
+//==================
+// Event Selections
+//==================
+
 
 //==================
 // Initialize
@@ -314,48 +323,9 @@ void AnalyzerCore::initializeAnalyzerTools(){
 }
 
 void AnalyzerCore::Init(){
-  
+
   cout << "Let initiallize!" << endl;
-  if(Simulator.Contains("GEANT")){
-    this_GEANT4Ntuple.Init_GEANT4(fChain);
-  }
-  else if(Simulator.Contains("FLUKA")){
-    this_FLUKANtuple.Init_FLUKA(fChain);
-  }
-  else return;
-
-}
-
-//==================
-// Functions for Particles
-//==================
-int AnalyzerCore::GetAtomicNumber(int pid){
-
-  int out;
-
-  if(pid < 1000000000) return 0;
-  
-  out = (pid - 1000000000) / 10000;
-
-  return out;
-
-}
-
-int AnalyzerCore::GetAtomicMass(int pid){
-
-  int out;
-  
-  if(pid < 1000000000) return 0;
-
-  int current_atomic_number = GetAtomicNumber(pid);
-  
-  //cout << "[[AnalyzerCore::GetAtomicMass]] pid - 1000000000 : " << pid - 1000000000 << endl;
-  //cout << "[[AnalyzerCore::GetAtomicMass]] pid - 1000000000 current_atomic_number * 10000 : "<< pid - 1000000000 - current_atomic_number * 10000<< endl;
-
-  out = (pid - 1000000000 - current_atomic_number * 10000) / 10;
-
-  return out;
-
+  evt.Init(fChain);
 }
 
 //==================
