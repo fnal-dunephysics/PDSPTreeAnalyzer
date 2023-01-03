@@ -313,3 +313,7 @@ double BetheBloch::dEdx_Gaus_Sigma(double KE, double pitch){
 
   return sigma;
 }
+
+BetheBloch::~BetheBloch(){
+
+}

@@ -1,4 +1,4 @@
-#ifndef PionAnalyzer_h
+#ifndef PionKEScale_h
 #define PionKEScale_h
 
 #include "AnalyzerCore.h"

@@ -6,9 +6,11 @@ AnalyzerCore::AnalyzerCore(){
   NSkipEvent = 0;
   LogEvery = 1000;
   MCSample = "";
-  Simulator = "";
+  Beam_Momentum = "";
   Userflags.clear();
   outfile = NULL;
+  MCCorr = new MCCorrection();
+  G4Xsec = new GEANT4_XS();
   map_BB[13] = new BetheBloch(13);
   map_BB[211] = new BetheBloch(211);
   map_BB[321] = new BetheBloch(321);
@@ -40,7 +42,9 @@ AnalyzerCore::~AnalyzerCore(){
   delete outfile;
 
   //==== Tools
-  delete smear;
+  delete MCCorr;
+  delete G4Xsec;
+  //delete map_BB;
 
   if (!fChain) return;
   delete fChain->GetCurrentFile();
@@ -68,7 +72,7 @@ void AnalyzerCore::Loop(){
   cout << "[AnalyzerCore::Loop] NSkipEvent = " << NSkipEvent << endl;
   cout << "[AnalyzerCore::Loop] LogEvery = " << LogEvery << endl;
   cout << "[SKFlatNtuple::Loop] MCSample = " << MCSample << endl;
-  cout << "[AnalyzerCore::Loop] Simulator = " << Simulator << endl;
+  cout << "[AnalyzerCore::Loop] Beam_Momentum = " << Beam_Momentum << endl;
   cout << "[AnalyzerCore::Loop] Userflags = {" << endl;
   for(unsigned int i=0; i<Userflags.size(); i++){
     cout << "[AnalyzerCore::Loop]   \"" << Userflags.at(i) << "\"," << endl;
@@ -127,7 +131,7 @@ void AnalyzerCore::SetOutfilePath(TString outname){
 Event AnalyzerCore::GetEvent(){
 
   Event ev;
-  ev.SetSimulator(Simulator);
+  ev.SetBeam_Momentum(Beam_Momentum);
 
   return ev;
 
@@ -325,7 +329,7 @@ void AnalyzerCore::initializeAnalyzerTools(){
 void AnalyzerCore::Init(){
 
   cout << "Let initiallize!" << endl;
-  evt.Init(fChain);
+  evt.Init_PDSPTree(fChain);
 }
 
 //==================

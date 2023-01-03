@@ -1,17 +1,13 @@
 root -l -b<<EOF
-SmearParticles a
-a.TestClass()
-//cout << "aaaaa" << endl
-PionAnalyzer m
-m.MaxEvent = 2000000
-m.LogEvery = 100000
+cout << "aaaaa" << endl
+PionKEScale m;
+m.MaxEvent = 1000;
+m.LogEvery = 1000;
 m.MCSample = "Piplus_1GeV_Ar"
-m.Simulator = "GEANT4";
-//m.Simulator = "FLUKA"
+m.Beam_Momentum = "1GeV"
 m.SetTreeName()
-//m.AddFile("/data6/Users/suoh/FNAL/pion_study/samples/GEANT4/XS_Pi+_G4_lAr_1GeV_10b_0.root") // == GEANT4
-//m.AddFile("/data6/Users/suoh/FNAL/pion_study/samples/FLUKA/18files/pion1GeVa001_Out.root") // == FLUKA 
-m.AddFile("/dune/data/users/tjyang/G4HadStudies/XS_Pi+_G4_lAr_1GeV_10b_0.root")
+m.AddFile("xroot://fndca1.fnal.gov:1094/pnfs/fnal.gov/usr/dune/tape_backed/dunepro/protodune-sp/root-tuple/2022/mc/physics/PDSPProd4a/18/80/01/67/PDSPProd4a_MC_1GeV_reco1_sce_datadriven_v1_ntuple_v09_41_00_03.root") // 1GeV MC
+m.AddFile("xroot://fndca1.fnal.gov:1094/pnfs/fnal.gov/usr/dune/tape_backed/dunepro/protodune-sp/root-tuple/2022/detector/physics/PDSPProd4/00/00/52/19/PDSPProd4_data_1GeV_reco2_ntuple_v09_41_00_04.root") // 1 GeV data
 m.SetOutfilePath("hists.root");
 m.Init();
 cout << "Running" << endl;

@@ -10,6 +10,6 @@ Event::~Event(){
 
 }
 
-void Event::SetSimulator(TString Beam_Momentum){
+void Event::SetBeam_Momentum(TString Beam_Momentum){
   j_Beam_Momentum = Beam_Momentum;
 }

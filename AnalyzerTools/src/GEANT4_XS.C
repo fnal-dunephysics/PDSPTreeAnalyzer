@@ -39,12 +39,12 @@ void GEANT4_XS::ReadHistograms(){
 
     if(g=="TGraph"){
       histDir->cd();
-      map_graph_Xsec[b + "_" + c + "_" + d] = (TH1D *)file -> Get(f) -> Clone();
+      map_graph_Xsec[b + "_" + c + "_" + d] = (TGraph*)file -> Get(f) -> Clone();
     }
   }
 
   cout << "[GEANT4_XS::ReadHistograms] map_graph_Xsec : " << endl;
-  for(std::map< TString, TH1D* >::iterator it = map_hist_Xsec.begin(); it != map_hist_Xsec.end(); it++){
+  for(std::map< TString, TGraph* >::iterator it = map_graph_Xsec.begin(); it != map_graph_Xsec.end(); it++){
     cout << "[GEANT4_XS::ReadHistograms] key = " << it -> first << endl;
   }
 

@@ -14,6 +14,7 @@ class BetheBloch {
 
   BetheBloch();
   BetheBloch(int pdg);
+  ~BetheBloch();
 
   void SetPdgCode(int pdg);
 

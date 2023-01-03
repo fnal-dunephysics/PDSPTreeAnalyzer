@@ -91,19 +91,19 @@ public:
   //==================
   // Get Particles
   //==================
-  inline static bool PComparing(const Particle& p1, const Particle& p2){ return (p1.P() > p2.P()); }
-
   Event GetEvent();
-
-  std::vector<Gen> GetAllParticles();
-  std::vector<Gen> GetNeutrons(const std::vector<Gen>& particles, double min_P);
+  std::vector<Daughter> GetAllDaughters();
+  std::vector<Daughter> GetPions(const vector<Daughter> in);
+  std::vector<Daughter> GetProtons(const vector<Daughter> in);
+  std::vector<Daughter> GetTruePions(const vector<Daughter> in);
+  std::vector<Daughter> GetTrueProtons(const vector<Daughter> in);
 
   //==================
   // Tools
   //==================
   std::map< int, BetheBloch* > map_BB;
-  MCCorrection MCCorr;
-  GEANT4_XS G4Xsec;
+  MCCorrection *MCCorr;
+  GEANT4_XS *G4Xsec;
   void initializeAnalyzerTools();
 
   //==================

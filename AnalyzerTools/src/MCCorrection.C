@@ -67,7 +67,7 @@ double MCCorrection::MomentumReweight_SF(TString flag, double P_beam_inst, int s
   if(!this_hist){
     if(IgnoreNoHist) return 1.;
     else{
-      cerr << "[MCCorrection::MuonReco_SF] No "<< "Beam_SF_" + this_nu_type << endl;
+      cerr << "[MCCorrection::MuonReco_SF] No "<< "Beam_SF_" + flag << endl;
       exit(EXIT_FAILURE);
     }
   }

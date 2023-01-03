@@ -10,8 +10,8 @@ public:
   Event();
   ~Event();
 
-  void SetSimulator(TString Beam_Momentum);
-  inline TString Simulator() const {return j_Beam_Momentum;}
+  void SetBeam_Momentum(TString Beam_Momentum);
+  inline TString Beam_Momentum() const {return j_Beam_Momentum;}
 
 private:
   TString j_Beam_Momentum;
