@@ -15,10 +15,10 @@ void MCCorrection::ReadHistograms(){
   TDirectory* origDir = gDirectory;
 
   //==== Momentum reweight
-  TString MomentumReweight_path = datapath+"/Momentum_reweight/";
+  TString MomentumReweight_path = datapath + "/Momentum_reweight/";
   //cout << "[MCCorrection::ReadHistograms] MomentumReweight_path  : " << MomentumReweight_path << endl;
   string elline;
-  ifstream in(MomentumReweight_path+"histmap.txt");
+  ifstream in(MomentumReweight_path + "histmap.txt");
   while(getline(in,elline)){
     std::istringstream is( elline );
 
