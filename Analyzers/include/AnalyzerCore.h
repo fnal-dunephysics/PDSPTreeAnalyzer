@@ -17,15 +17,15 @@
 #include "GEANT4_XS.h"
 #include "MCCorrection.h"
 
-#define M_Z 91.1876
-#define M_W 80.379
-#define M_mu 105.65837/1e3
-#define M_neutron 939.565/1e3
-#define M_proton 938.272/1e3
-#define M_pion 139.570/1e3
-#define M_Kaon 493.677/1e3
-#define M_e 0.510998/1e3
-#define M_pizero 134.976/1e3
+//#define M_Z 91.1876
+//#define M_W 80.379
+#define M_mu 105.65837
+#define M_neutron 939.565
+#define M_proton 938.272
+#define M_pion 139.570
+#define M_Kaon 493.677
+#define M_e 0.510998
+#define M_pizero 134.976
 
 class AnalyzerCore {
 
@@ -111,6 +111,13 @@ public:
   //==================
   // Set Beam Variables
   //==================
+  double P_beam_inst = 1000.;
+  double mass_beam = 139.57;
+  double P_ff_reco = -999.;
+  double KE_ff_reco = -999.;
+  double KE_end_reco = -999.;
+  double E_end_reco = -999.;
+
   int pandora_slice_pdg;
   void SetPandoraSlicePDG(int pdg);
   double daughter_michel_score;

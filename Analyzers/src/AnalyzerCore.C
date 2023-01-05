@@ -249,7 +249,7 @@ std::vector<Daughter> AnalyzerCore::GetPions(const vector<Daughter>& in){
   double cut_trackScore = 0.5;
   double cut_emScore = 0.5;
   double cut_chi2_proton = 60.;
-  double cut_startZ = 220.;
+  double cut_startZ = 215.;
   int cut_Nhit = 20;
   for(unsigned int i = 0; i < in.size(); i++){
     Daughter this_in = in.at(i);
@@ -494,7 +494,11 @@ bool AnalyzerCore::PassStoppedPionVetoCut(double cut){ // to remove stopped pion
 // Initialize
 //==================
 void AnalyzerCore::initializeAnalyzerTools(){
-
+  MCCorr->SetIsData(!evt.MC);
+  if(evt.MC){
+    MCCorr->ReadHistograms();
+  }
+  G4Xsec->ReadHistograms();
 }
 
 void AnalyzerCore::Init(){
