@@ -15,8 +15,8 @@ export PDSPAnaLogWebDir=''
 #### use cvmfs for root ####
 export CMS_PATH=/cvmfs/cms.cern.ch
 source $CMS_PATH/cmsset_default.sh
-export SCRAM_ARCH=slc7_amd64_gcc700
-export cmsswrel='cmssw-patch/CMSSW_10_4_0_patch1'
+export SCRAM_ARCH=slc7_amd64_gcc10
+export cmsswrel='cmssw-patch/CMSSW_12_6_0_patch1'
 cd /cvmfs/cms.cern.ch/$SCRAM_ARCH/cms/$cmsswrel/src
 echo "@@@@ SCRAM_ARCH = "$SCRAM_ARCH
 echo "@@@@ cmsswrel = "$cmsswrel
@@ -25,18 +25,12 @@ eval `scramv1 runtime -sh`
 cd -
 source /cvmfs/cms.cern.ch/$SCRAM_ARCH/cms/$cmsswrel/external/$SCRAM_ARCH/bin/thisroot.sh
 
-if [[ $HOSTNAME == *"tamsa1"* ]]; then
+if [[ $HOSTNAME == *"dunegpvm"*"fnal.gov" ]]; then
 
-  echo "@@@@ Working on tamsa1"
-  export PDSPAnaRunlogDir="/data6/Users/$USER/PDSPAnaRunlog/"
-  export PDSPAnaOutputDir="/data6/Users/$USER/PDSPAnaOutput/"
-  
-elif [[ $HOSTNAME == *"tamsa2"* ]]; then
+  echo "@@@@ Working on dunegpvm"
+  export PDSPAnaRunlogDir="/dune/app/users/$USER/Grid/PDSPAnaRunlog/"
+  export PDSPAnaOutputDir="/dune/app/users/$USER/Grid/PDSPAnaOutput/"
 
-  echo "@@@@ Working on tamsa2"
-  export PDSPAnaRunlogDir="/data6/Users/$USER/PDSPAnaRunlog/"
-  export PDSPAnaOutputDir="/data6/Users/$USER/PDSPAnaOutput/"
-  echo $PDSPAnaRunlogDir
 fi
 
 alias pdout="cd $PDSPAnaOutputDir/$PDSPAnaV/"

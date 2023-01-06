@@ -16,6 +16,7 @@ void MCCorrection::ReadHistograms(){
 
   //==== Momentum reweight
   TString MomentumReweight_path = datapath + "/Momentum_reweight/";
+  TString MomentumReweight_path_xrootd = "xroot://fndca1.fnal.gov:1094/pnfs/fnal.gov/usr/dune/persistent/users/sungbino/PDSP_data/Momentum_reweight/"; 
   //cout << "[MCCorrection::ReadHistograms] MomentumReweight_path  : " << MomentumReweight_path << endl;
   string elline;
   ifstream in(MomentumReweight_path + "histmap.txt");
@@ -32,7 +33,7 @@ void MCCorrection::ReadHistograms(){
     is >> d; // <rootfilename>
     is >> e; // <histname>
     is >> f; // Class
-    TFile *file = new TFile(MomentumReweight_path + d);
+    TFile *file = TFile::Open(MomentumReweight_path_xrootd + d);
     //cout << "MomentumReweight_path + d : " << MomentumReweight_path + d << endl;
     //cout << "a : " << a << ", b : " << b << ", c : << " << c << ", d : " << d << ", e : " << e << ", f : " << f << endl;
 
