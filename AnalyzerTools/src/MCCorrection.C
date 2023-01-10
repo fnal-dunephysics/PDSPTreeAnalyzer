@@ -17,7 +17,7 @@ void MCCorrection::ReadHistograms(){
   //==== Momentum reweight
   TString MomentumReweight_path = datapath + "/Momentum_reweight/";
   TString MomentumReweight_path_xrootd = "xroot://fndca1.fnal.gov:1094/pnfs/fnal.gov/usr/dune/persistent/users/sungbino/PDSP_data/Momentum_reweight/"; 
-  //cout << "[MCCorrection::ReadHistograms] MomentumReweight_path  : " << MomentumReweight_path << endl;
+  cout << "[MCCorrection::ReadHistograms] MomentumReweight_path  : " << MomentumReweight_path << endl;
   string elline;
   ifstream in(MomentumReweight_path + "histmap.txt");
   while(getline(in,elline)){
@@ -25,7 +25,7 @@ void MCCorrection::ReadHistograms(){
 
     TString tstring_elline = elline;
     if(tstring_elline.Contains("#")) continue;
-    //cout << "[MCCorrection::ReadHistograms] tstring_elline : " << tstring_elline << endl;
+    cout << "[MCCorrection::ReadHistograms] tstring_elline : " << tstring_elline << endl;
     TString a,b,c,d,e,f;
     is >> a; // Beam,
     is >> b; // SF, Eff

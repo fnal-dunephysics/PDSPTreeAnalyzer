@@ -911,6 +911,55 @@ double AnalyzerCore::Fit_HypTrkLength_Likelihood(const vector<double> & dEdx, co
   return best_total_res_length;
 }
 
+double AnalyzerCore::Get_EQE_NC_Pion(double P_pion, double cos_theta, double E_binding, int which_sol){
+
+  double E_pion = sqrt( pow(P_pion, 2.0) + pow(M_pion, 2.0) );
+
+  double A = M_proton - E_binding - E_pion;
+  double B = pow(M_pion, 2.) - pow(P_pion, 2.) - pow(M_proton, 2.);
+
+  // == ax^2 + bx + c = 0
+  double a = 4. * (A*A - P_pion * P_pion * cos_theta * cos_theta);
+  double b = 4. * A * (A*A + B);
+  double c = pow(A*A + B, 2.) + 4. * M_pion * M_pion * P_pion * P_pion * cos_theta * cos_theta;
+
+
+  double numer1 = (-1.) * b;
+  double numer_sqrt = sqrt(b*b - 4. * a * c);
+  double denom = 2. * a;
+
+  double EQE = (numer1 + (which_sol + 0.) * numer_sqrt ) / denom;
+
+  return EQE;
+}
+
+bool AnalyzerCore::Is_EQE(double window){
+  bool is_QE = false;
+
+  TVector3 unit_beam(evt.true_beam_endPx, evt.true_beam_endPy, evt.true_beam_endPz);
+  double P_beam = evt.true_beam_endP * 1000.;
+  double m_beam = evt.true_beam_mass;
+  double E_beam = sqrt(P_beam * P_beam + m_beam * m_beam);
+
+  int N_daugther_piplus = 0;
+  for(unsigned int i = 0; i < (*evt.true_beam_daughter_ID).size(); i++){
+    int this_daughter_PID = (*evt.true_beam_daughter_PDG).at(i);
+    if(this_daughter_PID == 211){
+      N_daugther_piplus++;
+
+      TVector3 unit_daughter((*evt.true_beam_daughter_startPx).at(i), (*evt.true_beam_daughter_startPy).at(i), (*evt.true_beam_daughter_startPz).at(i) );
+      unit_daughter = (1./ unit_daughter.Mag() ) * unit_daughter;
+      double cos_theta = cos(unit_beam.Angle(unit_daughter));
+      double P_daughter = (*evt.true_beam_daughter_startP).at(i) * 1000.;
+      double EQE_NC_4 = Get_EQE_NC_Pion(P_daughter, cos_theta, 4., -1.);
+      double this_EQEmE = EQE_NC_4 - E_beam;
+      if(this_EQEmE > (-1.) * window && this_EQEmE < window){
+        is_QE = true;
+      }
+    }
+  }
+}
+
 //==================
 //==== Plotting
 //==================

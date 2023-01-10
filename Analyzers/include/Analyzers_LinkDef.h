@@ -8,5 +8,6 @@
 #pragma link C++ class PDSPTree+;
 #pragma link C++ class AnalyzerCore+;
 #pragma link C++ class PionKEScale+;
+#pragma link C++ class PionQE+;
 
 #endif

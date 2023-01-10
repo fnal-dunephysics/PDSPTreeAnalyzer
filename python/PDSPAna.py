@@ -3,7 +3,6 @@
 import os,sys,time
 import argparse
 import datetime
-from CheckJobStatus import *
 from TimeTools import *
 import random
 import subprocess
@@ -16,8 +15,8 @@ parser.add_argument('-i', dest='InputSample', default="")
 parser.add_argument('-l', dest='InputSampleList', default="")
 parser.add_argument('-n', dest='NJobs', default=1, type=int)
 parser.add_argument('-o', dest='Outputdir', default="")
-parser.add_argument('-q', dest='Queue', default="fastq")
 parser.add_argument('-P', dest='Momentum', default="1.0")
+parser.add_argument('--suffix', dest='Suffix', default="")
 parser.add_argument('--no_exec', action='store_true')
 parser.add_argument('--userflags', dest='Userflags', default="")
 parser.add_argument('--nmax', dest='NMax', default=0, type=int)
@@ -49,8 +48,6 @@ string_ThisTime = ""
 ## Environment Variables
 
 USER = os.environ['USER']
-SCRAM_ARCH = os.environ['SCRAM_ARCH']
-cmsswrel = os.environ['cmsswrel']
 PDSPAna_WD = os.environ['PDSPAna_WD']
 PDSPAnaV = os.environ['PDSPAnaV']
 SAMPLE_DATA_DIR = PDSPAna_WD+'/data/'+PDSPAnaV+'/sample/'
@@ -74,7 +71,7 @@ StringForHash = ""
 
 ## When using txt file for input (i.e., -l option)
 
-if args.InputSampleList is not "":
+if args.InputSampleList != "":
   lines = open(args.InputSampleList)
   for line in lines:
     if "#" in line:
@@ -106,6 +103,7 @@ os.system('mkdir -p '+MasterJobDir+'/tar/include/')
 os.system('cp '+PDSPAna_WD+'/DataFormats/include/*.h '+MasterJobDir+'/tar/include')
 os.system('cp '+PDSPAna_WD+'/AnalyzerTools/include/*.h '+MasterJobDir+'/tar/include')
 os.system('cp '+PDSPAna_WD+'/Analyzers/include/*.h '+MasterJobDir+'/tar/include')
+os.system('cp -r '+PDSPAna_WD+'/data '+MasterJobDir+'/tar/')
 
 ## Loop over samples
 
@@ -150,9 +148,10 @@ for InputSample in InputSamples:
 
   if IsDUNEgpvm:
     commandsfilename = args.Analyzer+'_'+args.Momentum+'_'+InputSample
-    outname = commandsfilename + '.root'
+    outname = commandsfilename + args.Suffix + '.root'
+    #outname = commandsfilename + '_test.root'
     run_commands = open(base_rundir+'/'+commandsfilename+'.sh','w')
-    print>>run_commands,'''#!/bin/bash
+    run_commands.write('''#!/bin/bash
 # Setup grid submission
 
 outDir=$1
@@ -175,8 +174,8 @@ echo "@@ ls tar"
 ls -lhs tar
 ls -lhs tar/lib
 ls -lhs tar/include
-ls -lhs /srv/no_xfer/0/TRANSFERRED_INPUT_FILES/PDSPAna_build/tar
-ls -lhs /srv/no_xfer/0/TRANSFERRED_INPUT_FILES/PDSPAna_build/tar/lib
+ls -lhs tar/data/v1/Momentum_reweight
+
 
 nProcess=$PROCESS
 echo "@@ nProcess : "${{nProcess}}
@@ -185,11 +184,15 @@ echo "@@ nProcess : "${{nProcess}}
 source /cvmfs/dune.opensciencegrid.org/products/dune/setup_dune.sh
 setup root v6_22_08d -q e20:p392:prof
 
+#### setup directories
 export ROOT_INCLUDE_PATH=${{gridBaseDir}}/tar:$ROOT_INCLUDE_PATH
 echo ${{ROOT_INCLUDE_PATH}}
 
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${{gridBaseDir}}/tar/lib/
 echo ${{LD_LIBRARY_PATH}}
+
+export PDSPAnaV="v1"
+export DATA_DIR=${{gridBaseDir}}/tar/data/${{PDSPAnaV}}
 
 setup ifdhc
 
@@ -204,7 +207,7 @@ echo "ifdh cp "${{thisOutputCreationDir}}/{0} ${{outDir}}/{0}
 ifdh cp ${{thisOutputCreationDir}}/{0} ${{outDir}}/{0}
 echo "@@ Done!"
 
-'''.format(outname)
+'''.format(outname))
     run_commands.close()
 
   thisjob_dir = base_rundir
@@ -216,8 +219,7 @@ echo "@@ Done!"
   IncludeLine = ''
 
   out = open(runCfileFullPath, 'w')
-  print>>out,'''{2}
-
+  out.write('''
 R__LOAD_LIBRARY(libPhysics.so)
 R__LOAD_LIBRARY(libMathMore.so)
 R__LOAD_LIBRARY(libTree.so)
@@ -231,7 +233,7 @@ void {1}(){{
   {0} m;
 
 
-'''.format(args.Analyzer, runfunctionname, IncludeLine)
+'''.format(args.Analyzer, runfunctionname))
 
   out.write('  m.LogEvery = 100;\n')
   out.write('  m.MCSample = "'+InputSample+'";\n')
@@ -246,7 +248,7 @@ void {1}(){{
     out.write('  m.MaxEvent=m.fChain->GetEntries()/'+str(args.Reduction)+';\n')
   if args.NMax > 0:
     out.write('  m.MaxEvent='+str(args.NMax)+';\n')
-  print>>out,'''  m.Init();
+  out.write('''  m.Init();
   m.initializeAnalyzer();
   m.initializeAnalyzerTools();
   m.SwitchToTempDir();
@@ -254,7 +256,7 @@ void {1}(){{
 
   m.WriteHist();
 
-}'''
+}''')
   out.close()
 
   if IsDUNEgpvm:
@@ -263,7 +265,7 @@ void {1}(){{
     os.chdir(base_rundir)
     os.system('tar -cvf PDSPAna_build.tar tar')
     if not args.no_exec:
-      job_submit = '''jobsub_submit -G dune --role=Analysis --resource-provides=\"usage_model=DEDICATED,OPPORTUNISTIC\" -l \'+SingularityImage=\\\"/cvmfs/singularity.opensciencegrid.org/fermilab/fnal-wn-sl7:latest\\\"\' --append_condor_requirements=\'(TARGET.HAS_SINGULARITY=?=true)\' --tar_file_name \"dropbox:///{0}/PDSPAna_build.tar\" --email-to sungbin.oh555@gmail.com -N 1 --expected-lifetime 2h --memory 5GB "file://{0}/{1}.sh\"'''.format(base_rundir, commandsfilename)
+      job_submit = '''jobsub_submit -G dune --role=Analysis --resource-provides=\"usage_model=DEDICATED,OPPORTUNISTIC\" -l \'+SingularityImage=\\\"/cvmfs/singularity.opensciencegrid.org/fermilab/fnal-wn-sl7:latest\\\"\' --append_condor_requirements=\'(TARGET.HAS_SINGULARITY=?=true)\' --tar_file_name \"dropbox:///{0}/PDSPAna_build.tar\" --email-to sungbin.oh555@gmail.com -N 1 --expected-lifetime 2h --memory 2GB "file://{0}/{1}.sh\"'''.format(base_rundir, commandsfilename)
       os.system(job_submit)
       print(job_submit)
     os.chdir(cwd)
