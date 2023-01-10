@@ -11,7 +11,7 @@ void run_PionKEScale(){
 
   PionKEScale m;
   //m.MaxEvent = -1;
-  m.MaxEvent = 10000;
+  m.MaxEvent = 1000;
   m.LogEvery = 100;
   m.MCSample = "Piplus_1GeV_Ar";
   m.Beam_Momentum = 1.0;

@@ -101,6 +101,12 @@ MasterJobDir += '__'+HOSTNAME+'/'
 os.system('mkdir -p '+MasterJobDir+'/tar/lib/')
 os.system('cp '+PDSPAna_LIB_PATH+'/* '+MasterJobDir+'/tar/lib')
 
+## Copy headers
+os.system('mkdir -p '+MasterJobDir+'/tar/include/')
+os.system('cp '+PDSPAna_WD+'/DataFormats/include/*.h '+MasterJobDir+'/tar/include')
+os.system('cp '+PDSPAna_WD+'/AnalyzerTools/include/*.h '+MasterJobDir+'/tar/include')
+os.system('cp '+PDSPAna_WD+'/Analyzers/include/*.h '+MasterJobDir+'/tar/include')
+
 ## Loop over samples
 
 # true or false for each sample
@@ -137,11 +143,14 @@ for InputSample in InputSamples:
   lines_files = open(tmpfilepath).readlines()
   os.system('cp '+tmpfilepath+' '+base_rundir+'/input_filelist.txt')
 
+  
+
   NTotalFiles = len(lines_files)
   ## Write run script
 
   if IsDUNEgpvm:
     commandsfilename = args.Analyzer+'_'+args.Momentum+'_'+InputSample
+    outname = commandsfilename + '.root'
     run_commands = open(base_rundir+'/'+commandsfilename+'.sh','w')
     print>>run_commands,'''#!/bin/bash
 # Setup grid submission
@@ -153,46 +162,49 @@ outDir=/pnfs/dune/persistent/users/sungbino/PDSP_out
 
 echo "@@ pwd"
 pwd
-gridBaseDir='pwd'
+gridBaseDir=`pwd`
 
 echo "@@ mkdir output"
 mkdir output
-thisOutputCreationDir='pwd'/output
+thisOutputCreationDir=`pwd`/output
 
 echo "@@ ls"
 ls
+
+echo "@@ ls tar"
+ls -lhs tar
+ls -lhs tar/lib
+ls -lhs tar/include
+ls -lhs /srv/no_xfer/0/TRANSFERRED_INPUT_FILES/PDSPAna_build/tar
+ls -lhs /srv/no_xfer/0/TRANSFERRED_INPUT_FILES/PDSPAna_build/tar/lib
 
 nProcess=$PROCESS
 echo "@@ nProcess : "${{nProcess}}
 
 #### use cvmfs for root ####
-export CMS_PATH=/cvmfs/cms.cern.ch
-source $CMS_PATH/cmsset_default.sh
-export SCRAM_ARCH=slc7_amd64_gcc700
-export cmsswrel='cmssw-patch/CMSSW_10_4_0_patch1'
-cd /cvmfs/cms.cern.ch/$SCRAM_ARCH/cms/$cmsswrel/src
-echo "@@@@ SCRAM_ARCH = "$SCRAM_ARCH
-echo "@@@@ cmsswrel = "$cmsswrel
-echo "@@@@ scram..."
-eval `scramv1 runtime -sh`
-cd -
-source /cvmfs/cms.cern.ch/$SCRAM_ARCH/cms/$cmsswrel/external/$SCRAM_ARCH/bin/thisroot.sh
+source /cvmfs/dune.opensciencegrid.org/products/dune/setup_dune.sh
+setup root v6_22_08d -q e20:p392:prof
 
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${{gridBaseDir}}/lib/
+export ROOT_INCLUDE_PATH=${{gridBaseDir}}/tar:$ROOT_INCLUDE_PATH
+echo ${{ROOT_INCLUDE_PATH}}
+
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${{gridBaseDir}}/tar/lib/
 echo ${{LD_LIBRARY_PATH}}
+
+setup ifdhc
 
 echo "@@ Env setup finished"
 
-#root -l -b -q run.C
+root -l -b -q ./tar/run.C
 
 echo "@@ Finished!!"
 ls -alg ${{thisOutputCreationDir}}/
 
-echo "ifdh cp "${{thisOutputCreationDir}}/${{outName}} ${{outDir}}/${{outName}}
-ifdh cp ${{thisOutputCreationDir}}/${{outName}} ${{outDir}}/${{outName}}
+echo "ifdh cp "${{thisOutputCreationDir}}/{0} ${{outDir}}/{0}
+ifdh cp ${{thisOutputCreationDir}}/{0} ${{outDir}}/{0}
 echo "@@ Done!"
 
-'''.format(MasterJobDir, base_rundir, SCRAM_ARCH, cmsswrel)
+'''.format(outname)
     run_commands.close()
 
   thisjob_dir = base_rundir
@@ -206,6 +218,14 @@ echo "@@ Done!"
   out = open(runCfileFullPath, 'w')
   print>>out,'''{2}
 
+R__LOAD_LIBRARY(libPhysics.so)
+R__LOAD_LIBRARY(libMathMore.so)
+R__LOAD_LIBRARY(libTree.so)
+R__LOAD_LIBRARY(libHist.so)
+R__LOAD_LIBRARY(libGpad.so)
+R__LOAD_LIBRARY(libDataFormats.so)
+R__LOAD_LIBRARY(libAnalyzerTools.so)
+R__LOAD_LIBRARY(libAnalyzers.so)
 void {1}(){{
 
   {0} m;
@@ -213,15 +233,15 @@ void {1}(){{
 
 '''.format(args.Analyzer, runfunctionname, IncludeLine)
 
-  out.write('  m.LogEvery = 100\n')
+  out.write('  m.LogEvery = 100;\n')
   out.write('  m.MCSample = "'+InputSample+'";\n')
-  out.write('  m.Beam_Momentum = "'+str(args.Momentum)+'";\n')
+  out.write('  m.Beam_Momentum = '+str(args.Momentum)+';\n')
   out.write('  m.SetTreeName();\n')
   for it_file in lines_files:
     thisfilename = it_file.strip('\n')
     out.write('  m.AddFile("'+thisfilename+'");\n')
 
-  out.write('  m.SetOutfilePath("hists.root");\n')
+  out.write('  m.SetOutfilePath("./output/' + outname + '");\n')
   if args.Reduction>1:
     out.write('  m.MaxEvent=m.fChain->GetEntries()/'+str(args.Reduction)+';\n')
   if args.NMax > 0:
@@ -235,7 +255,7 @@ void {1}(){{
   m.WriteHist();
 
 }'''
-
+  out.close()
 
   if IsDUNEgpvm:
 
@@ -243,7 +263,7 @@ void {1}(){{
     os.chdir(base_rundir)
     os.system('tar -cvf PDSPAna_build.tar tar')
     if not args.no_exec:
-      job_submit = '''jobsub_submit -G dune --role=Analysis --resource-provides=\"usage_model=DEDICATED,OPPORTUNISTIC\" -l \'+SingularityImage=\\\"/cvmfs/singularity.opensciencegrid.org/fermilab/fnal-wn-sl7:latest\\\"\' --append_condor_requirements=\'(TARGET.HAS_SINGULARITY=?=true)\' --tar_file_name \"dropbox:///{0}/PDSPAna_build.tar\" --email-to sungbin.oh555@gmail.com -N 1 --expected-lifetime 2h --memory 30GB "file://$(pwd)/{1}.sh\"'''.format(base_rundir, commandsfilename)
+      job_submit = '''jobsub_submit -G dune --role=Analysis --resource-provides=\"usage_model=DEDICATED,OPPORTUNISTIC\" -l \'+SingularityImage=\\\"/cvmfs/singularity.opensciencegrid.org/fermilab/fnal-wn-sl7:latest\\\"\' --append_condor_requirements=\'(TARGET.HAS_SINGULARITY=?=true)\' --tar_file_name \"dropbox:///{0}/PDSPAna_build.tar\" --email-to sungbin.oh555@gmail.com -N 1 --expected-lifetime 2h --memory 5GB "file://{0}/{1}.sh\"'''.format(base_rundir, commandsfilename)
       os.system(job_submit)
       print(job_submit)
     os.chdir(cwd)

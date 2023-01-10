@@ -508,7 +508,8 @@ void AnalyzerCore::Init(){
 
   // == Additional Root files
   TString datapath = getenv("DATA_DIR");
-  TFile *file_profile = TFile::Open(datapath + "/dEdx_profiles/dEdxrestemplates.root");
+  TString datapath_xrootd = "xroot://fndca1.fnal.gov:1094/pnfs/fnal.gov/usr/dune/persistent/users/sungbino/PDSP_data/";
+  TFile *file_profile = TFile::Open(datapath_xrootd + "/dEdx_profiles/dEdxrestemplates.root");
   map_profile[13] = (TProfile *)file_profile -> Get("dedx_range_mu");
   map_profile[211] = (TProfile *)file_profile -> Get("dedx_range_pi");
   map_profile[321] = (TProfile *)file_profile -> Get("dedx_range_ka");
