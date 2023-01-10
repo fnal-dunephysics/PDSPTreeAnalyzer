@@ -140,18 +140,37 @@ for InputSample in InputSamples:
   tmpfilepath = SAMPLE_DATA_DIR+'/For'+SampleHOSTNAME+'/'+InputSample+'.txt'
   lines_files = open(tmpfilepath).readlines()
   os.system('cp '+tmpfilepath+' '+base_rundir+'/input_filelist.txt')
-
-  
-
   NTotalFiles = len(lines_files)
-  ## Write run script
 
-  if IsDUNEgpvm:
-    commandsfilename = args.Analyzer+'_'+args.Momentum+'_'+InputSample
-    outname = commandsfilename + args.Suffix + '.root'
-    #outname = commandsfilename + '_test.root'
-    run_commands = open(base_rundir+'/'+commandsfilename+'.sh','w')
-    run_commands.write('''#!/bin/bash
+  ## Get number of total entries
+
+  sample_info_path = SAMPLE_DATA_DIR+'/CommonSampleInfo/'+InputSample+'.txt'
+  lines_sample_info = open(sample_info_path).readlines()
+  Total_entries = 0
+  for line_sample_info in lines_sample_info:
+    if '#' in line_sample_info:
+      continue
+    this_split = line_sample_info.split('\t')
+    Total_entries = int(this_split[1][0:-1])
+    print(Total_entries)
+    
+
+
+  ## Loop for number of jobs
+  N_jobs = args.NJobs
+  for i in range(N_jobs):
+    loop_start = int(i * (Total_entries / N_jobs))
+    loop_end = min(int((i+1) * (Total_entries /N_jobs)), Total_entries)
+    print('Run ' + str(i) + 'for ' + str(loop_start) + ' to ' + str(loop_end))
+
+    ## Write run script
+
+    if IsDUNEgpvm:
+      commandsfilename = args.Analyzer+'_'+args.Momentum+'_'+InputSample
+      outname = commandsfilename + args.Suffix + '_' + str(i) + '.root'
+      #outname = commandsfilename + '_test.root'
+      run_commands = open(base_rundir+'/'+commandsfilename+'_'+str(i)+'.sh','w')
+      run_commands.write('''#!/bin/bash
 # Setup grid submission
 
 outDir=$1
@@ -198,7 +217,7 @@ setup ifdhc
 
 echo "@@ Env setup finished"
 
-root -l -b -q ./tar/run.C
+root -l -b -q ./tar/run_{1}.C
 
 echo "@@ Finished!!"
 ls -alg ${{thisOutputCreationDir}}/
@@ -207,19 +226,19 @@ echo "ifdh cp "${{thisOutputCreationDir}}/{0} ${{outDir}}/{0}
 ifdh cp ${{thisOutputCreationDir}}/{0} ${{outDir}}/{0}
 echo "@@ Done!"
 
-'''.format(outname))
-    run_commands.close()
+      '''.format(outname, str(i)))
+      run_commands.close()
 
-  thisjob_dir = base_rundir
+      thisjob_dir = base_rundir
 
-  runCfileFullPath = ""
-  runfunctionname = "run"
-  runCfileFullPath = base_rundir+'/tar/run.C'
+      runCfileFullPath = ""
+      runfunctionname = "run"
+      runCfileFullPath = base_rundir+'/tar/run_'+str(i)+'.C'
     
-  IncludeLine = ''
+      IncludeLine = ''
 
-  out = open(runCfileFullPath, 'w')
-  out.write('''
+      out = open(runCfileFullPath, 'w')
+      out.write('''
 R__LOAD_LIBRARY(libPhysics.so)
 R__LOAD_LIBRARY(libMathMore.so)
 R__LOAD_LIBRARY(libTree.so)
@@ -235,20 +254,18 @@ void {1}(){{
 
 '''.format(args.Analyzer, runfunctionname))
 
-  out.write('  m.LogEvery = 100;\n')
-  out.write('  m.MCSample = "'+InputSample+'";\n')
-  out.write('  m.Beam_Momentum = '+str(args.Momentum)+';\n')
-  out.write('  m.SetTreeName();\n')
-  for it_file in lines_files:
-    thisfilename = it_file.strip('\n')
-    out.write('  m.AddFile("'+thisfilename+'");\n')
+      out.write('  m.LogEvery = 100;\n')
+      out.write('  m.MCSample = "'+InputSample+'";\n')
+      out.write('  m.Beam_Momentum = '+str(args.Momentum)+';\n')
+      out.write('  m.SetTreeName();\n')
+      for it_file in lines_files:
+        thisfilename = it_file.strip('\n')
+      out.write('  m.AddFile("'+thisfilename+'");\n')
 
-  out.write('  m.SetOutfilePath("./output/' + outname + '");\n')
-  if args.Reduction>1:
-    out.write('  m.MaxEvent=m.fChain->GetEntries()/'+str(args.Reduction)+';\n')
-  if args.NMax > 0:
-    out.write('  m.MaxEvent='+str(args.NMax)+';\n')
-  out.write('''  m.Init();
+      out.write('  m.SetOutfilePath("./output/' + outname + '");\n')
+      out.write('  m.NSkipEvent='+str(loop_start)+';\n')
+      out.write('  m.MaxEvent='+str(loop_end)+';\n')
+      out.write('''  m.Init();
   m.initializeAnalyzer();
   m.initializeAnalyzerTools();
   m.SwitchToTempDir();
@@ -257,17 +274,23 @@ void {1}(){{
   m.WriteHist();
 
 }''')
-  out.close()
+      out.close()
 
   if IsDUNEgpvm:
 
     cwd = os.getcwd()
     os.chdir(base_rundir)
     os.system('tar -cvf PDSPAna_build.tar tar')
+
+
     if not args.no_exec:
-      job_submit = '''jobsub_submit -G dune --role=Analysis --resource-provides=\"usage_model=DEDICATED,OPPORTUNISTIC\" -l \'+SingularityImage=\\\"/cvmfs/singularity.opensciencegrid.org/fermilab/fnal-wn-sl7:latest\\\"\' --append_condor_requirements=\'(TARGET.HAS_SINGULARITY=?=true)\' --tar_file_name \"dropbox:///{0}/PDSPAna_build.tar\" --email-to sungbin.oh555@gmail.com -N 1 --expected-lifetime 2h --memory 2GB "file://{0}/{1}.sh\"'''.format(base_rundir, commandsfilename)
-      os.system(job_submit)
-      print(job_submit)
+      for i in range(N_jobs):
+        commandsfilename = args.Analyzer+'_'+args.Momentum+'_'+InputSample+'_'+str(i)
+        job_submit = '''jobsub_submit -G dune --role=Analysis --resource-provides=\"usage_model=DEDICATED,OPPORTUNISTIC\" -l \'+SingularityImage=\\\"/cvmfs/singularity.opensciencegrid.org/fermilab/fnal-wn-sl7:latest\\\"\' --append_condor_requirements=\'(TARGET.HAS_SINGULARITY=?=true)\' --tar_file_name \"dropbox:///{0}/PDSPAna_build.tar\" --email-to sungbin.oh555@gmail.com -N 1 --expected-lifetime 4h --memory 2GB "file://{0}/{1}.sh\"'''.format(base_rundir, commandsfilename)
+
+
+        os.system(job_submit)
+        print(job_submit)
     os.chdir(cwd)
 
 if args.no_exec:

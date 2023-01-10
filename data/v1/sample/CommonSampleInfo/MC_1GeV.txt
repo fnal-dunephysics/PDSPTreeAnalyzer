@@ -1,2 +1,2 @@
-# alias
-MC_1GeV
+# alias	N_events
+MC_1GeV	298194

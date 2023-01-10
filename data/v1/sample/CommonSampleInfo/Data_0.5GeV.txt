@@ -1,2 +1,2 @@
-# alias
-Data_0.5GeV
+# alias	N_events
+Data_0.5GeV	516776

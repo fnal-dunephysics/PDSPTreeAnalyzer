@@ -1,2 +1,2 @@
-# alias
-MC_0.3GeV
+# alias	N_events
+MC_0.3GeV	518
