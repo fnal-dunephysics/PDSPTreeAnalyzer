@@ -13,9 +13,11 @@
 #include "PDSPTree.h"
 #include "Event.h"
 #include "Daughter.h"
+#include "MCSSegment.h"
 #include "BetheBloch.h"
 #include "GEANT4_XS.h"
 #include "MCCorrection.h"
+#include "Fittings.h"
 
 //#define M_Z 91.1876
 //#define M_W 80.379
@@ -106,6 +108,7 @@ public:
   std::map< int, BetheBloch* > map_BB;
   MCCorrection *MCCorr;
   GEANT4_XS *G4Xsec;
+  Fittings *Fitter;
   void initializeAnalyzerTools();
 
   //==================
@@ -127,10 +130,13 @@ public:
   double chi2_muon;
   std::map< int, TProfile* > map_profile;
   int GetPiParType();
+  int pi_type = 0;
+  TString pi_type_str = "";
 
   //==================
   // Event Selections
   //==================
+  bool IsData = false;
   bool Pass_Beam_PID(int PID);
   bool PassBeamScraperCut() const;
   double P_beam_inst_scale = 1.;
@@ -170,6 +176,12 @@ public:
   double Fit_HypTrkLength_Likelihood(const vector<double> & dEdx, const vector<double> & ResRange, int PID, bool save_graph, bool this_is_beam);
   double Get_EQE_NC_Pion(double P_pion, double cos_theta, double E_binding, int which_sol);
   bool Is_EQE(double window);
+
+  //==================
+  // MCS
+  //==================
+  vector<MCSSegment> SplitIntoSegments(const vector<TVector3> & hits, double segment_size);
+
 
   //==================
   //===Plotting

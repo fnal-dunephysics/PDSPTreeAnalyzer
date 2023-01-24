@@ -54,8 +54,14 @@ public:
   void Set_PFP_trackScore_collection(double i_PFP_trackScore_collection);
   void Set_PFP_emScore_collection(double i_PFP_emScore_collection);
   void Set_PFP_michelScore_collection(double i_PFP_michelScore_collection);
+  void Set_spacePts_X(vector<double> i_spacePts_X);
+  void Set_spacePts_Y(vector<double> i_spacePts_Y);
+  void Set_spacePts_Z(vector<double> i_spacePts_Z);
   void Set_allTrack_ID(int i_allTrack_ID);
   void Set_allTrack_EField_SCE(vector<double> i_allTrack_EField_SCE);
+  void Set_allTrack_calo_X(vector<double> i_allTrack_calo_X);
+  void Set_allTrack_calo_Y(vector<double> i_allTrack_calo_Y);
+  void Set_allTrack_calo_Z(vector<double> i_allTrack_calo_Z);
   void Set_allTrack_resRange_SCE(vector<double> i_allTrack_resRange_SCE);
   void Set_allTrack_resRange_SCE_plane0(vector<double> i_allTrack_resRange_SCE_plane0);
   void Set_allTrack_resRange_SCE_plane1(vector<double> i_allTrack_resRange_SCE_plane1);
@@ -120,8 +126,14 @@ public:
   inline double PFP_trackScore_collection() const { return j_PFP_trackScore_collection; }
   inline double PFP_emScore_collection() const { return j_PFP_emScore_collection; }
   inline double PFP_michelScore_collection() const { return j_PFP_michelScore_collection; }
+  inline vector<double> spacePts_X() const { return j_spacePts_X; }
+  inline vector<double> spacePts_Y() const { return j_spacePts_Y; }
+  inline vector<double> spacePts_Z() const { return j_spacePts_Z; }
   inline int allTrack_ID() const { return j_allTrack_ID; }
   inline vector<double> allTrack_EField_SCE() const { return j_allTrack_EField_SCE; }
+  inline vector<double> allTrack_calo_X() const { return j_allTrack_calo_X; }
+  inline vector<double> allTrack_calo_Y() const{ return j_allTrack_calo_Y; }
+  inline vector<double> allTrack_calo_Z() const{ return j_allTrack_calo_Z; }
   inline vector<double> allTrack_resRange_SCE() const { return j_allTrack_resRange_SCE; }
   inline vector<double> allTrack_resRange_SCE_plane0() const { return j_allTrack_resRange_SCE_plane0; }
   inline vector<double> allTrack_resRange_SCE_plane1() const { return j_allTrack_resRange_SCE_plane1; }
@@ -189,9 +201,14 @@ private:
   double j_PFP_trackScore_collection;
   double j_PFP_emScore_collection;
   double j_PFP_michelScore_collection;
-
+  vector<double> j_spacePts_X;
+  vector<double> j_spacePts_Y;
+  vector<double> j_spacePts_Z;
   int j_allTrack_ID;
   vector<double> j_allTrack_EField_SCE;
+  vector<double> j_allTrack_calo_X;
+  vector<double> j_allTrack_calo_Y;
+  vector<double> j_allTrack_calo_Z;
   vector<double> j_allTrack_resRange_SCE;
   vector<double> j_allTrack_resRange_SCE_plane0;
   vector<double> j_allTrack_resRange_SCE_plane1;

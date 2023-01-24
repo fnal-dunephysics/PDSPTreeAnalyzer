@@ -7,5 +7,6 @@
 
 #pragma link C++ class Event+;
 #pragma link C++ class Daughter+;
+#pragma link C++ class MCSSegment+;
 
 #endif

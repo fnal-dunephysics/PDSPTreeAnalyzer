@@ -8,6 +8,7 @@
 #pragma link C++ class MCCorrection+;
 #pragma link C++ class GEANT4_XS+;
 #pragma link C++ class BetheBloch+;
+#pragma link C++ class Fittings+;
 #pragma link C++ class TDirectoryHelper+;
 
 #endif

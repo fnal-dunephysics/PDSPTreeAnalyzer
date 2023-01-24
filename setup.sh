@@ -7,6 +7,9 @@ export PDSPAnaV="v1"
 mkdir -p $PDSPAna_WD/data/$PDSPAnaV
 export DATA_DIR=$PDSPAna_WD/data/$PDSPAnaV
 
+export PDSPAnaGridOutDir="/pnfs/dune/persistent/users/$USER/PDSP_out"
+mkdir -p $PDSPAnaGridOutDir
+
 #### USER INFO ####
 export PDSPAnaLogEmail='sungbino@fnal.gov'
 export PDSPAnaLogWeb=''

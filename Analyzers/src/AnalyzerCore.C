@@ -15,6 +15,7 @@ AnalyzerCore::AnalyzerCore(){
   map_BB[211] = new BetheBloch(211);
   map_BB[321] = new BetheBloch(321);
   map_BB[2212] = new BetheBloch(2212);
+  Fitter = new Fittings();
 }
 
 AnalyzerCore::~AnalyzerCore(){
@@ -192,8 +193,14 @@ std::vector<Daughter> AnalyzerCore::GetAllDaughters(){
     this_Daughter.Set_PFP_trackScore_collection((*evt.reco_daughter_PFP_trackScore_collection).at(i));
     this_Daughter.Set_PFP_emScore_collection((*evt.reco_daughter_PFP_emScore_collection).at(i));
     this_Daughter.Set_PFP_michelScore_collection((*evt.reco_daughter_PFP_michelScore_collection).at(i));
+    this_Daughter.Set_spacePts_X((*evt.reco_daughter_spacePts_X).at(i));
+    this_Daughter.Set_spacePts_Y((*evt.reco_daughter_spacePts_Y).at(i));
+    this_Daughter.Set_spacePts_Z((*evt.reco_daughter_spacePts_Z).at(i));
     this_Daughter.Set_allTrack_ID((*evt.reco_daughter_allTrack_ID).at(i));
     this_Daughter.Set_allTrack_EField_SCE((*evt.reco_daughter_allTrack_EField_SCE).at(i));
+    this_Daughter.Set_allTrack_calo_X((*evt.reco_daughter_allTrack_calo_X).at(i));
+    this_Daughter.Set_allTrack_calo_Y((*evt.reco_daughter_allTrack_calo_Y).at(i));
+    this_Daughter.Set_allTrack_calo_Z((*evt.reco_daughter_allTrack_calo_Z).at(i));
     this_Daughter.Set_allTrack_resRange_SCE((*evt.reco_daughter_allTrack_resRange_SCE).at(i));
     this_Daughter.Set_allTrack_resRange_SCE_plane0((*evt.reco_daughter_allTrack_resRange_plane0).at(i)); // == FIXME, to SCE
     this_Daughter.Set_allTrack_resRange_SCE_plane1((*evt.reco_daughter_allTrack_resRange_plane1).at(i)); // == FIXME, to SCE
@@ -432,6 +439,8 @@ bool AnalyzerCore::PassBeamMomentumWindowCut() const{
 
   bool out = false;
   double P_beam_inst = evt.beam_inst_P * 1000. * P_beam_inst_scale;
+
+  //cout << "[AnalyzerCore::PassBeamMomentumWindowCut] P_beam_inst : " << P_beam_inst << ", P_beam_inst_scale : " << P_beam_inst_scale << endl;
   out = ((P_beam_inst > beam_momentum_low) && (P_beam_inst < beam_momentum_high));
   return out;
 }
@@ -494,8 +503,10 @@ bool AnalyzerCore::PassStoppedPionVetoCut(double cut){ // to remove stopped pion
 // Initialize
 //==================
 void AnalyzerCore::initializeAnalyzerTools(){
-  MCCorr->SetIsData(!evt.MC);
-  if(evt.MC){
+
+  
+  MCCorr->SetIsData(IsData);
+  if(IsData){
     MCCorr->ReadHistograms();
   }
   G4Xsec->ReadHistograms();
@@ -505,6 +516,8 @@ void AnalyzerCore::Init(){
 
   cout << "Let initiallize!" << endl;
   evt.Init_PDSPTree(fChain);
+
+  IsData = MCSample.Contains("Data");
 
   // == Additional Root files
   TString datapath = getenv("DATA_DIR");
@@ -517,10 +530,10 @@ void AnalyzerCore::Init(){
   cout << "[[AnalyzerCore::Init]] Called Profiles" << endl;
 
   // == Beam Window cut
-  if(evt.MC) P_beam_inst_scale = Beam_Momentum;
+  if(!IsData) P_beam_inst_scale = Beam_Momentum;
   beam_momentum_low = Beam_Momentum * 1000. * 0.8;
   beam_momentum_high = Beam_Momentum * 1000. * 1.2;
-  cout << "[[AnalyzerCore::Init]] Called beam window cuts" << endl;
+  cout << "[[AnalyzerCore::Init]] Called beam window cuts ["  << beam_momentum_low << ", " << beam_momentum_high << "]" << endl;
 
   // == Pandora
   SetPandoraSlicePDG(13);
@@ -543,7 +556,7 @@ void AnalyzerCore::Init_evt(){
                  evt.reco_beam_calo_endZ);
     TVector3 dir = pt1 - pt0;
     dir = dir.Unit();
-    if (evt.MC){
+    if (!IsData){
       TVector3 beamdir(cos(beam_angleX_mc*TMath::Pi()/180),
                        cos(beam_angleY_mc*TMath::Pi()/180),
                        cos(beam_angleZ_mc*TMath::Pi()/180));
@@ -679,7 +692,7 @@ double AnalyzerCore::Fit_HypTrkLength_Gaussian(const vector<double> & dEdx, cons
   double best_additional_res_length = -0.1;
   double best_chi2 = 99999.;
   int this_N_calo = dEdx.size();
-  if(this_N_calo <= 15){
+  if(this_N_calo <= 10){
     //cout << "[HadAna::Fit_dEdx_Residual_Length] Too small number of hits!" << endl;
     return -9999.; // == Too small number of hits
   }
@@ -805,7 +818,7 @@ double AnalyzerCore::Fit_HypTrkLength_Likelihood(const vector<double> & dEdx, co
   double best_additional_res_length = -0.1;
   double best_m2lnL = 99999.;
   int this_N_calo = dEdx.size();
-  if(this_N_calo <= 15){
+  if(this_N_calo <= 10){
     return -9999.; // == Too small number of hits
   }
   int this_N_hits = this_N_calo; // == Use how many hits
@@ -885,6 +898,8 @@ double AnalyzerCore::Fit_HypTrkLength_Likelihood(const vector<double> & dEdx, co
   if(this_is_beam) original_res_length = ResRange.at(0); // == [cm]
   double best_total_res_length = best_additional_res_length + original_res_length; // == [cm]
 
+  cout << "this_N_hits : " << this_N_hits << ", original_res_length : " << original_res_length << ", best_additional_res_length : " << best_additional_res_length << ", best_total_res_length : " << best_total_res_length << endl;
+
   // == Define fitting failed cases
   if(i_bestfit == res_length_trial - 1){
     //cout << "[HadAna::Fit_Beam_Hit_dEdx_Residual_Length] Fit failed : no mimumum" << endl;
@@ -958,7 +973,62 @@ bool AnalyzerCore::Is_EQE(double window){
       }
     }
   }
+
+  return is_QE;
 }
+
+//==================
+// MCS
+//==================
+vector<MCSSegment> AnalyzerCore::SplitIntoSegments(const vector<TVector3> & hits, double segment_size){
+
+  vector<MCSSegment> out;
+  if(hits.size() < 2) return out;
+
+  TVector3 hit_start = hits.at(0);
+  int hit_start_index = 0;
+  for(unsigned int i_hit = 2; i_hit < hits.size(); i_hit++){
+    vector<TVector3> this_hit_collection;
+    for(unsigned int j_hit = hit_start_index; j_hit < i_hit; j_hit++){
+      this_hit_collection.push_back(hits.at(j_hit));
+    }
+
+    vector<TVector3> this_fitted = Fitter -> Linear3Dfit(this_hit_collection);
+    
+    if(this_fitted.size() == 0) continue;
+    if(this_fitted.at(1).Mag() > segment_size){
+      MCSSegment this_segment;
+
+      TVector3 reco_start = hits.at(hit_start_index);
+      TVector3 reco_end = hits.at(i_hit);
+      TVector3 fitted_start = this_fitted.at(0);
+      TVector3 fitted_end = this_fitted.at(0) + this_fitted.at(1);
+      TVector3 fitted_vec = this_fitted.at(1);
+      this_segment.SetMCSSegment(reco_start, reco_end, fitted_start, fitted_end, fitted_vec);
+
+      out.push_back(this_segment);
+      hit_start_index = i_hit;
+    }
+    else if(i_hit == hits.size() - 1){
+      MCSSegment this_segment;
+
+      TVector3 reco_start = hits.at(hit_start_index);
+      TVector3 reco_end = hits.at(i_hit);
+      TVector3 fitted_start = this_fitted.at(0);
+      TVector3 fitted_end = this_fitted.at(0) +this_fitted.at(1);
+      TVector3 fitted_vec = this_fitted.at(1);
+      this_segment.SetMCSSegment(reco_start, reco_end, fitted_start, fitted_end, fitted_vec);
+
+      out.push_back(this_segment);
+    }
+
+    this_hit_collection.clear();
+    this_fitted.clear();
+  }
+
+  return out;
+}
+
 
 //==================
 //==== Plotting
@@ -1258,4 +1328,12 @@ void AnalyzerCore::WriteHist(){
     outfile->cd();
 
   }
+
+  outfile->cd();
+  outfile->mkdir("Fitter");
+  outfile->cd("Fitter");
+  for(std::map<TString, TGraph2D*>::iterator mapit = Fitter -> map_TGraph2D.begin(); mapit!=Fitter -> map_TGraph2D.end(); mapit++){
+    mapit->second->Write();
+  }
+
 }

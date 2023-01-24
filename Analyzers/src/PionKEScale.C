@@ -10,8 +10,6 @@ void PionKEScale::initializeAnalyzer(){
 
 void PionKEScale::executeEvent(){
 
-  //cout << "test evt.beam_inst_P : " << evt.beam_inst_P * 1000. << endl;
-  
   if(!PassBeamScraperCut()) return;
   if(!PassBeamMomentumWindowCut()) return;
   if(!PassPandoraSliceCut()) return;
@@ -24,6 +22,9 @@ void PionKEScale::executeEvent(){
   if(!PassMuonVetoCut()) return;
   if(!PassStoppedPionVetoCut()) return;
 
+  pi_type = GetPiParType();
+  pi_type_str = Form("%d", pi_type);
+
   P_beam_inst = evt.beam_inst_P * 1000. * P_beam_inst_scale;
   mass_beam = 139.57;
   P_ff_reco = Convert_P_Spectrometer_to_P_ff(P_beam_inst, "pion", "AllTrue", 0);
@@ -35,17 +36,18 @@ void PionKEScale::executeEvent(){
 
   // == Functions to study beam
   //Run_beam_dEdx_vector();
- 
+  Run_beam_MCS();
+
   // == Functions to study daughters
   vector<Daughter> daughters_all = GetAllDaughters();
   vector<Daughter> pions = GetPions(daughters_all);
-  if(pions.size() > 0) Run_Daughter(pions);
+  //if(pions.size() > 0) Run_Daughter(pions);
 }
 
 void PionKEScale::Run_beam_dEdx_vector(){
 
   int total_N_hits = (*evt.reco_beam_calibrated_dEdX_SCE).size();
-  if(total_N_hits < 15) return;
+  if(total_N_hits < 11) return;
   
   // == Checked that 0th index is first hit with the largest resRange
   /*
@@ -58,7 +60,7 @@ void PionKEScale::Run_beam_dEdx_vector(){
   int this_N_hits = total_N_hits;
   int skip_N_hits = 0;
   double this_KE_BB = KE_ff_reco;
-  while(this_N_hits > 15 && this_KE_BB > 0.1){
+  while(this_N_hits > 10 && this_KE_BB > 0.1){
     vector<double> this_dEdx_vec;
     vector<double> this_range_vec;
     this_N_hits = 0;
@@ -109,41 +111,174 @@ void PionKEScale::Run_beam_dEdx_vector(){
 
 }
 
+void PionKEScale::Run_beam_MCS(){
+
+  if(pi_type != 1 && pi_type != 3) return;
+
+  vector<TVector3> true_position_vec;
+  vector<TVector3> true_Pvec_vec;
+  vector<double> true_P_vec;
+  for(unsigned int i_true_hit = 0; i_true_hit < (*evt.true_beam_traj_Z).size(); i_true_hit++){
+    TVector3 this_position((*evt.true_beam_traj_X).at(i_true_hit), (*evt.true_beam_traj_Y).at(i_true_hit), (*evt.true_beam_traj_Z).at(i_true_hit));
+    TVector3 this_Pvec((*evt.true_beam_traj_Px).at(i_true_hit), (*evt.true_beam_traj_Py).at(i_true_hit), (*evt.true_beam_traj_Pz).at(i_true_hit));
+    this_Pvec = this_Pvec * 1000. * P_beam_inst_scale;
+    double this_P = this_Pvec.Mag();
+
+    true_position_vec.push_back(this_position);
+    true_Pvec_vec.push_back(this_position);
+    true_P_vec.push_back(this_P);
+  }
+
+  vector<double> reco_X = (*evt.reco_beam_calo_X);
+  vector<double> reco_Y = (*evt.reco_beam_calo_Y);
+  vector<double> reco_Z = (*evt.reco_beam_calo_Z);
+  vector<double> reco_range = (*evt.reco_beam_resRange_SCE);
+  vector<TVector3> reco_position_vec;
+  for(unsigned int i_reco_hit = 0; i_reco_hit < reco_Z.size(); i_reco_hit++){
+    TVector3 this_position(reco_X.at(i_reco_hit), reco_Y.at(i_reco_hit), reco_Z.at(i_reco_hit));
+    reco_position_vec.push_back(this_position);
+    //cout << Form("[PionKEScale::Run_beam_MCS] reco %d : (%.2f, %.2f, %.2f)", i_reco_hit, reco_X.at(i_reco_hit), reco_Y.at(i_reco_hit), reco_Z.at(i_reco_hit)) << endl;
+  }
+
+
+  // == Test 3D linear fit function
+  TString evt_run_str = Form("Run%d_Evt%d", evt.run, evt.event);
+  //TVector3 test_fit = Fitter->line3Dfit(reco_position_vec, true, evt_run_str);
+  //cout << "[PionKEScale::Run_beam_MCS] " << evt_run_str << ", test_fit.Mag() : " << test_fit.Mag() << endl;
+
+
+  MCS_Plot_Angles_for_Segment_Size_True(reco_position_vec, true_position_vec, true_P_vec, 4., "4cm");
+  MCS_Plot_Angles_for_Segment_Size_True(reco_position_vec, true_position_vec, true_P_vec, 5., "5cm");
+  MCS_Plot_Angles_for_Segment_Size_True(reco_position_vec, true_position_vec, true_P_vec, 8., "8cm");
+  MCS_Plot_Angles_for_Segment_Size_True(reco_position_vec, true_position_vec, true_P_vec, 10., "10cm");
+  MCS_Plot_Angles_for_Segment_Size_True(reco_position_vec, true_position_vec, true_P_vec, 14., "14cm");
+
+  true_position_vec.clear();
+  true_Pvec_vec.clear();
+  true_P_vec.clear();
+  reco_X.clear();
+  reco_Y.clear();
+  reco_Z.clear();
+  reco_range.clear();
+  reco_position_vec.clear();
+}
+
+void PionKEScale::MCS_Plot_Angles_for_Segment_Size_True(const vector<TVector3> & reco_position_vec, const vector<TVector3> & true_position_vec, const vector<double> & true_P_vec, double segment_size, TString name){
+
+  int this_PDG = 211;
+  if(pi_type == 3) this_PDG = 13;
+  vector<MCSSegment> this_segments = SplitIntoSegments(reco_position_vec, segment_size);
+  if(this_segments.size() < 2) return;
+  vector<double> segment_true_P = GetSegmentTrueP(this_segments, true_position_vec, true_P_vec, this_PDG);
+  for(unsigned int i_seg = 0; i_seg < segment_true_P.size(); i_seg++){
+    if(segment_true_P.at(i_seg) < 0.) return;
+  }
+
+  for(unsigned int i_seg = 0; i_seg < segment_true_P.size() - 1; i_seg++){
+    TVector3 this_vec = this_segments.at(i_seg).FittedVec();
+    TVector3 next_vec = this_segments.at(i_seg + 1).FittedVec();
+
+    double this_vec_theta = this_vec.Theta();
+    double this_vec_phi = this_vec.Phi();
+    this_vec.RotateZ(-1. * this_vec_phi);
+    this_vec.RotateY(-1. * this_vec_theta);
+    next_vec.RotateZ(-1. * this_vec_phi);
+    next_vec.RotateY(-1. * this_vec_theta);
+    double theta_yz = TMath::ATan(next_vec.Y() / next_vec.Z());
+    double theta_xz = TMath::ATan(next_vec.X() / next_vec.Z());
+    JSFillHist("Beam_MCS", "Beam_MCS_true_P_vs_theta_yz_" + name + "_" + pi_type_str, segment_true_P.at(i_seg), theta_yz, 1., 3000., 0., 3000., 1000., -0.5, 0.5);
+    JSFillHist("Beam_MCS", "Beam_MCS_true_P_vs_theta_xz_" + name + "_" + pi_type_str, segment_true_P.at(i_seg), theta_xz, 1., 3000., 0., 3000., 1000., -0.5, 0.5);
+  }
+
+  this_segments.clear();
+  segment_true_P.clear();
+  return;
+}
+
 void PionKEScale::Run_Daughter(const vector<Daughter>& pions){
 
   for(unsigned int i_pion = 0; i_pion < pions.size(); i_pion++){
+
     Daughter this_daughter = pions.at(i_pion);
+
     double this_chi2_pion = Particle_chi2(this_daughter.allTrack_calibrated_dEdX_SCE(), this_daughter.allTrack_resRange_SCE(), 211);
-    JSFillHist("Daughter_pion", "Daughter_pion_chi2_pion", this_chi2_pion, 1., 1000., 0., 1000.);
-    //cout << "this_daughter.PFP_true_byHits_startE() : " << this_daughter.PFP_true_byHits_startE() << endl;
-    JSFillHist("Daughter_pion", "Daughter_pion_true_start_KE_vs_chi2_pion", this_daughter.PFP_true_byHits_startE() * 1000. - M_pion, this_chi2_pion, 1., 400., 0., 2000., 100., 0., 100.); 
+
+    TString particle_str = "Data";
+    double true_KE = -9999.;
+    double this_KE_BB = map_BB[211] -> KEFromRangeSpline(this_daughter.allTrack_resRange_SCE().back());
+    if(evt.MC){
+      int this_PdgID = this_daughter.PFP_true_byHits_PDG();
+      if(this_PdgID == 2212) particle_str = "proton";
+      else if(abs(this_PdgID) == 211) particle_str = "pion";
+      else if(abs(this_PdgID) == 13) particle_str = "muon";
+      else particle_str = "other";
+
+      JSFillHist("Daughter_pion", "Daughter_pion_true_start_KE_vs_chi2_pion_" + particle_str, this_daughter.PFP_true_byHits_startE() * 1000. - M_pion, this_chi2_pion, 1., 400., 0., 2000., 100.,0., 100.);
+      double true_P = this_daughter.PFP_true_byHits_startP() * 1000.;
+      double true_E = this_daughter.PFP_true_byHits_startE() * 1000.;
+      true_KE = true_E - pow(true_E * true_E - true_P * true_P , 0.5);
+      JSFillHist("Daughter_pion", "Daughter_pion_true_start_KEv2_vs_chi2_pion_" + particle_str, true_KE, this_chi2_pion, 1., 400., 0., 2000., 100.,0., 100.);
+      JSFillHist("Daughter_pion", "Daughter_pion_true_start_KE_vs_KE_BB_" + particle_str, true_KE, this_KE_BB, 1., 400., 0., 2000., 400., 0., 2000.);
+
+      double this_range = this_daughter.allTrack_resRange_SCE().back();
+      JSFillHist("Daughter_pion", "Daughter_pion_true_start_KE_vs_Range_" + particle_str, true_KE, this_range, 1., 400., 0., 2000., 200., 0., 1000.);
+    }
+
+    JSFillHist("Daughter_pion", "Daughter_pion_chi2_pion_" + particle_str, this_chi2_pion, 1., 1000., 0., 1000.);
 
     // == Select stopped pion
     if(this_chi2_pion < 6.){
-      FitWithVectors(this_daughter.allTrack_calibrated_dEdX_SCE(), this_daughter.allTrack_resRange_SCE());
+      if(evt.MC) JSFillHist("Daughter_pion", "Daughter_pion_true_start_KE_vs_KE_BB_chi2_pion_cut_" + particle_str, true_KE, this_KE_BB, 1., 400., 0., 2000., 400., 0., 2000.);
+      //FitWithVectors(this_daughter.allTrack_calibrated_dEdX_SCE(), this_daughter.allTrack_resRange_SCE(), particle_str);
+
+      if(this_daughter.allTrack_resRange_SCE().size() > 1){
+	
+	cout << "[PionKEScale::Run_Daughter] A reco pion" << endl;
+	cout << "[PionKEScale::Run_Daughter] this_daughter.allTrack_resRange_SCE().size() : " << this_daughter.allTrack_resRange_SCE().size() << endl;
+	cout << "[PionKEScale::Run_Daughter] this_daughter.allTrack_calibrated_dEdX_SCE().size() : " << this_daughter.allTrack_calibrated_dEdX_SCE().size() << endl;
+	cout << "[PionKEScale::Run_Daughter] this_daughter.allTrack_calo_X().size() : " << this_daughter.allTrack_calo_X().size() << endl;
+	cout << "[PionKEScale::Run_Daughter] this_daughter.allTrack_calo_Y().size() : " << this_daughter.allTrack_calo_Y().size() << endl;
+        cout << "[PionKEScale::Run_Daughter] this_daughter.allTrack_calo_Z().size() : " << this_daughter.allTrack_calo_Z().size() << endl;
+
+
+	for(unsigned int i_hit = 0; i_hit < this_daughter.allTrack_resRange_SCE().size() - 1; i_hit++){
+	  double this_range = this_daughter.allTrack_resRange_SCE().at(i_hit);
+	  double this_X = this_daughter.allTrack_calo_X().at(i_hit);
+	  double this_Y = this_daughter.allTrack_calo_Y().at(i_hit);
+	  double this_Z = this_daughter.allTrack_calo_Z().at(i_hit);
+	  double next_range = this_daughter.allTrack_resRange_SCE().at(i_hit + 1);
+	  double next_X = this_daughter.allTrack_calo_X().at(i_hit + 1);
+	  double next_Y = this_daughter.allTrack_calo_Y().at(i_hit + 1);
+	  double next_Z = this_daughter.allTrack_calo_Z().at(i_hit + 1);
+
+	  double distance = pow( pow(this_X - next_X, 2) + pow(this_Y - next_Y, 2) + pow(this_Z - next_Z, 2), 0.5);
+	  double diff_range = next_range - this_range;
+	  cout << i_hit << ", diff_range : " << diff_range << ", distance : " << distance << endl;
+	}
+      }
     }
   }
-
 }
 
-void PionKEScale::FitWithVectors(const vector<double>& dEdx, const vector<double>& range){
+void PionKEScale::FitWithVectors(const vector<double>& dEdx, const vector<double>& range, TString particle_str){
 
   int total_N_hits = dEdx.size();
-  if(total_N_hits < 15) return;
+  if(total_N_hits < 11) return;
 
   int this_N_hits = total_N_hits;
   int skip_N_hits = 0;
 
   //cout << "range.at(0) : " << range.at(0) << ", range.at(total_N_hits - 1) : " << range.at(total_N_hits - 1) << endl;
-  double this_KE_BB = map_BB[211] -> KEFromRangeSpline(range.at(total_N_hits - 1));
+  double this_KE_BB = map_BB[211] -> KEFromRangeSpline(range.at(this_N_hits - 1));
+  //cout << "[PionKEScale::FitWithVectors] range.at(this_N_hits - 1) : " << range.at(this_N_hits - 1) << ", this_KE_BB : " << this_KE_BB << endl;
 
-  while(this_N_hits > 15 && this_KE_BB > 0.1){
+  while(this_N_hits > 10 && this_KE_BB > 0.1){
     vector<double> this_dEdx_vec;
     vector<double> this_range_vec;
     this_N_hits = 0;
     for(int i_hit = skip_N_hits; i_hit < total_N_hits; i_hit++){
       this_dEdx_vec.push_back(dEdx.at(i_hit));
-      this_range_vec.push_back(range.at(i_hit));
+      this_range_vec.push_back(range.at(i_hit) - range.at(skip_N_hits));
       this_N_hits++;
     }
 
@@ -151,8 +286,8 @@ void PionKEScale::FitWithVectors(const vector<double>& dEdx, const vector<double
     //cout << "this_alt_length : " << this_alt_length << endl;
     //this_KE_BB = map_BB[211]->KEAtLength(this_KE_BB, this_alt_length);
 
-    double Length_HypFit_Gaussian = Fit_HypTrkLength_Gaussian(this_dEdx_vec, this_range_vec, 211, false, true);
-    double Length_HypFit_Likelihood = Fit_HypTrkLength_Likelihood(this_dEdx_vec, this_range_vec, 211, false, true);
+    double Length_HypFit_Gaussian = Fit_HypTrkLength_Gaussian(this_dEdx_vec, this_range_vec, 211, false, false);
+    double Length_HypFit_Likelihood = Fit_HypTrkLength_Likelihood(this_dEdx_vec, this_range_vec, 211, false, false);
     double KE_HypFit_Gaussian = -9999.;
     double KE_HypFit_Likelihood = -9999.;
     //cout << "this_KE_BB : " << this_KE_BB << "\tthis_N_hits\t" << this_N_hits << endl;
@@ -168,12 +303,12 @@ void PionKEScale::FitWithVectors(const vector<double>& dEdx, const vector<double
     int N_hits_up = N_hits_step * (this_N_hits / N_hits_step + 1);
     TString N_hits_str = Form("Nhits%dto%d", N_hits_down, N_hits_up);
 
-    JSFillHist("Denom", "KE_beam_" + N_hits_str, this_KE_BB, 1., 1500., 0., 1500.);
+    JSFillHist("Denom", "KE_beam_" + N_hits_str + "_" + particle_str, this_KE_BB, 1., 1500., 0., 1500.);
     if(Length_HypFit_Likelihood > 0.){
-      JSFillHist("Gaussian", "Gaussian_KE_fit_vs_KE_BB_" + N_hits_str, KE_HypFit_Gaussian, this_KE_BB, 1., 300., 0., 1500., 300., 0., 1500.);
+      JSFillHist("Gaussian", "Gaussian_KE_fit_vs_KE_BB_" + N_hits_str + "_" + particle_str, KE_HypFit_Gaussian, this_KE_BB, 1., 300., 0., 1500., 300., 0., 1500.);
     }
     if(Length_HypFit_Likelihood > 0.){
-      JSFillHist("Likelihood", "Likelihood_KE_fit_vs_KE_BB_" + N_hits_str, KE_HypFit_Likelihood, this_KE_BB, 1., 300., 0., 1500., 300., 0., 1500.);
+      JSFillHist("Likelihood", "Likelihood_KE_fit_vs_KE_BB_" + N_hits_str + "_" + particle_str, KE_HypFit_Likelihood, this_KE_BB, 1., 300., 0., 1500., 300., 0., 1500.);
     }
 
     this_dEdx_vec.clear();
@@ -181,6 +316,41 @@ void PionKEScale::FitWithVectors(const vector<double>& dEdx, const vector<double
     skip_N_hits++;
     this_N_hits = total_N_hits - skip_N_hits;
   }
+}
+
+void PionKEScale::MCSAnglesWithVectors(){
+  //pi_type_str
+  
+
+}
+
+vector<double> PionKEScale::GetSegmentTrueP(const vector<MCSSegment> & segments, const vector<TVector3> & true_position_vec, const vector<double> true_P_vec, int PDG){
+  vector<double> out;
+
+  if(segments.size() == 0) return out;
+
+  //cout << "[GetSegmentTrueP] Start" << endl;
+
+  for(unsigned int i = 0; i < segments.size(); i++){
+
+    MCSSegment this_segment = segments.at(i);
+    TVector3 this_start_hit = this_segment.RecoStart();
+    double true_P = -999.;
+    for(unsigned int j = 0; j < true_position_vec.size() - 1; j++){
+      TVector3 this_true_hit = true_position_vec.at(j);
+      TVector3 next_true_hit = true_position_vec.at(j + 1);
+      if(this_start_hit.Z() > this_true_hit.Z() && this_start_hit.Z() < next_true_hit.Z()){
+	double distance = (this_true_hit - this_start_hit).Mag();
+	if(distance < 10.) true_P = map_BB[PDG] -> KEtoMomentum(map_BB[PDG] -> KEAtLength(map_BB[PDG] -> MomentumtoKE(true_P_vec.at(j)), distance));
+	break;
+      }
+    }
+    //cout << i << ", true_P : " << true_P << endl;
+    out.push_back(true_P);
+  }
+
+
+  return out;
 }
 
 PionKEScale::PionKEScale(){

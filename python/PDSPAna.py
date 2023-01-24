@@ -54,6 +54,7 @@ SAMPLE_DATA_DIR = PDSPAna_WD+'/data/'+PDSPAnaV+'/sample/'
 PDSPAnaRunlogDir = os.environ['PDSPAnaRunlogDir']
 PDSPAnaOutputDir = os.environ['PDSPAnaOutputDir']
 PDSPAna_LIB_PATH = os.environ['PDSPAna_LIB_PATH']
+PDSPAnaGridOutDir = os.environ['PDSPAnaGridOutDir']
 UID = str(os.getuid())
 HOSTNAME = os.environ['HOSTNAME']
 SampleHOSTNAME = HOSTNAME
@@ -176,7 +177,7 @@ for InputSample in InputSamples:
 outDir=$1
 echo "@@ outDir : ${{outDir}}"
 
-outDir=/pnfs/dune/persistent/users/sungbino/PDSP_out
+outDir={2}
 
 echo "@@ pwd"
 pwd
@@ -226,13 +227,13 @@ echo "ifdh cp "${{thisOutputCreationDir}}/{0} ${{outDir}}/{0}
 ifdh cp ${{thisOutputCreationDir}}/{0} ${{outDir}}/{0}
 echo "@@ Done!"
 
-      '''.format(outname, str(i)))
+      '''.format(outname, str(i),PDSPAnaGridOutDir))
       run_commands.close()
 
       thisjob_dir = base_rundir
 
       runCfileFullPath = ""
-      runfunctionname = "run"
+      runfunctionname = 'run_'+str(i)
       runCfileFullPath = base_rundir+'/tar/run_'+str(i)+'.C'
     
       IncludeLine = ''
@@ -244,6 +245,7 @@ R__LOAD_LIBRARY(libMathMore.so)
 R__LOAD_LIBRARY(libTree.so)
 R__LOAD_LIBRARY(libHist.so)
 R__LOAD_LIBRARY(libGpad.so)
+R__LOAD_LIBRARY(libGraf3d.so)
 R__LOAD_LIBRARY(libDataFormats.so)
 R__LOAD_LIBRARY(libAnalyzerTools.so)
 R__LOAD_LIBRARY(libAnalyzers.so)
@@ -286,7 +288,7 @@ void {1}(){{
     if not args.no_exec:
       for i in range(N_jobs):
         commandsfilename = args.Analyzer+'_'+args.Momentum+'_'+InputSample+'_'+str(i)
-        job_submit = '''jobsub_submit -G dune --role=Analysis --resource-provides=\"usage_model=DEDICATED,OPPORTUNISTIC\" -l \'+SingularityImage=\\\"/cvmfs/singularity.opensciencegrid.org/fermilab/fnal-wn-sl7:latest\\\"\' --append_condor_requirements=\'(TARGET.HAS_SINGULARITY=?=true)\' --tar_file_name \"dropbox:///{0}/PDSPAna_build.tar\" --email-to sungbin.oh555@gmail.com -N 1 --expected-lifetime 4h --memory 2GB "file://{0}/{1}.sh\"'''.format(base_rundir, commandsfilename)
+        job_submit = '''jobsub_submit -G dune --role=Analysis --resource-provides=\"usage_model=DEDICATED,OPPORTUNISTIC\" -l \'+SingularityImage=\\\"/cvmfs/singularity.opensciencegrid.org/fermilab/fnal-wn-sl7:latest\\\"\' --append_condor_requirements=\'(TARGET.HAS_SINGULARITY=?=true)\' --tar_file_name \"dropbox:///{0}/PDSPAna_build.tar\" --email-to sungbin.oh555@gmail.com -N 1 --expected-lifetime 8h --memory 2GB "file://{0}/{1}.sh\"'''.format(base_rundir, commandsfilename)
 
 
         os.system(job_submit)

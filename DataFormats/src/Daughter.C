@@ -37,8 +37,14 @@ Daughter::Daughter(){
   j_PFP_trackScore_collection = -9999.;
   j_PFP_emScore_collection = -9999.;
   j_PFP_michelScore_collection = -9999.;
+  j_spacePts_X.clear();
+  j_spacePts_Y.clear();
+  j_spacePts_Z.clear();
   j_allTrack_ID = -1;
   j_allTrack_EField_SCE.clear();
+  j_allTrack_calo_X.clear();
+  j_allTrack_calo_Y.clear();
+  j_allTrack_calo_Z.clear();
   j_allTrack_resRange_SCE.clear();
   j_allTrack_resRange_SCE_plane0.clear();
   j_allTrack_resRange_SCE_plane1.clear();
@@ -72,7 +78,6 @@ Daughter::Daughter(){
 Daughter::~Daughter(){}
 
 void Daughter::SetIsEmpty(bool i_IsEmpty){ j_IsEmpty = i_IsEmpty; }
-
 void Daughter::Set_PFP_true_byHits_PDG(int i_PFP_true_byHits_PDG){ j_PFP_true_byHits_PDG = i_PFP_true_byHits_PDG; }
 void Daughter::Set_PFP_true_byHits_ID(int i_PFP_true_byHits_ID){ j_PFP_true_byHits_ID = i_PFP_true_byHits_ID; }
 void Daughter::Set_PFP_true_byHits_origin(int i_PFP_true_byHits_origin){ j_PFP_true_byHits_origin = i_PFP_true_byHits_origin; }
@@ -107,8 +112,14 @@ void Daughter::Set_PFP_michelScore(double i_PFP_michelScore){ j_PFP_michelScore 
 void Daughter::Set_PFP_trackScore_collection(double i_PFP_trackScore_collection){ j_PFP_trackScore_collection = i_PFP_trackScore_collection; }
 void Daughter::Set_PFP_emScore_collection(double i_PFP_emScore_collection){ j_PFP_emScore_collection = i_PFP_emScore_collection; }
 void Daughter::Set_PFP_michelScore_collection(double i_PFP_michelScore_collection){ j_PFP_michelScore_collection = i_PFP_michelScore_collection; }
+void Daughter::Set_spacePts_X(vector<double> i_spacePts_X){ j_spacePts_X = i_spacePts_X; }
+void Daughter::Set_spacePts_Y(vector<double> i_spacePts_Y){ j_spacePts_Y = i_spacePts_Y; }
+void Daughter::Set_spacePts_Z(vector<double> i_spacePts_Z){ j_spacePts_Z = i_spacePts_Z; }
 void Daughter::Set_allTrack_ID(int i_allTrack_ID){ j_allTrack_ID = i_allTrack_ID; }
 void Daughter::Set_allTrack_EField_SCE(vector<double> i_allTrack_EField_SCE){ j_allTrack_EField_SCE = i_allTrack_EField_SCE; }
+void Daughter::Set_allTrack_calo_X(vector<double> i_allTrack_calo_X){ j_allTrack_calo_X = i_allTrack_calo_X; }
+void Daughter::Set_allTrack_calo_Y(vector<double> i_allTrack_calo_Y){ j_allTrack_calo_Y = i_allTrack_calo_Y; }
+void Daughter::Set_allTrack_calo_Z(vector<double> i_allTrack_calo_Z){ j_allTrack_calo_Z = i_allTrack_calo_Z; }
 void Daughter::Set_allTrack_resRange_SCE(vector<double> i_allTrack_resRange_SCE){ j_allTrack_resRange_SCE = i_allTrack_resRange_SCE; }
 void Daughter::Set_allTrack_resRange_SCE_plane0(vector<double> i_allTrack_resRange_SCE_plane0){ j_allTrack_resRange_SCE_plane0 = i_allTrack_resRange_SCE_plane0; }
 void Daughter::Set_allTrack_resRange_SCE_plane1(vector<double> i_allTrack_resRange_SCE_plane1){ j_allTrack_resRange_SCE_plane1 = i_allTrack_resRange_SCE_plane1; }
