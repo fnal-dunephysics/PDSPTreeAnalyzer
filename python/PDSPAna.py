@@ -288,7 +288,7 @@ void {1}(){{
     if not args.no_exec:
       for i in range(N_jobs):
         commandsfilename = args.Analyzer+'_'+args.Momentum+'_'+InputSample+'_'+str(i)
-        job_submit = '''jobsub_submit -G dune --role=Analysis --resource-provides=\"usage_model=DEDICATED,OPPORTUNISTIC\" -l \'+SingularityImage=\\\"/cvmfs/singularity.opensciencegrid.org/fermilab/fnal-wn-sl7:latest\\\"\' --append_condor_requirements=\'(TARGET.HAS_SINGULARITY=?=true)\' --tar_file_name \"dropbox:///{0}/PDSPAna_build.tar\" --email-to sungbin.oh555@gmail.com -N 1 --expected-lifetime 8h --memory 2GB "file://{0}/{1}.sh\"'''.format(base_rundir, commandsfilename)
+        job_submit = '''jobsub_submit -G dune --role=Analysis --resource-provides=\"usage_model=DEDICATED,OPPORTUNISTIC\" -l \'+SingularityImage=\\\"/cvmfs/singularity.opensciencegrid.org/fermilab/fnal-wn-sl7:latest\\\"\' --append_condor_requirements=\'(TARGET.HAS_SINGULARITY=?=true)\' --tar_file_name \"dropbox:///{0}/PDSPAna_build.tar\" --email-to sungbin.oh555@gmail.com -N 1 --expected-lifetime 8h --memory 6GB "file://{0}/{1}.sh\"'''.format(base_rundir, commandsfilename)
 
 
         os.system(job_submit)

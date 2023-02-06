@@ -12,8 +12,8 @@ void run_PionKEScale(){
 
   PionKEScale m;
   m.MaxEvent = -1;
-  //m.MaxEvent = 200;
-  m.LogEvery = 10;
+  //m.MaxEvent = 2000;
+  m.LogEvery = 100;
   m.MCSample = "MC";
   m.Beam_Momentum = 0.5;
   m.SetTreeName();

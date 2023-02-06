@@ -9,6 +9,7 @@
 #include <sstream>
 #include "TRandom.h"
 #include "TProfile.h"
+#include "TRandom3.h"
 
 #include "PDSPTree.h"
 #include "Event.h"
@@ -181,7 +182,7 @@ public:
   // MCS
   //==================
   vector<MCSSegment> SplitIntoSegments(const vector<TVector3> & hits, double segment_size);
-
+  TVector3 RotateToZaxis(TVector3 reference_vec, TVector3 input);
 
   //==================
   //===Plotting

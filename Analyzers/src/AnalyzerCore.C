@@ -983,43 +983,49 @@ bool AnalyzerCore::Is_EQE(double window){
 vector<MCSSegment> AnalyzerCore::SplitIntoSegments(const vector<TVector3> & hits, double segment_size){
 
   vector<MCSSegment> out;
-  if(hits.size() < 2) return out;
+  if(hits.size() < 6) return out;
 
   TVector3 hit_start = hits.at(0);
   int hit_start_index = 0;
   for(unsigned int i_hit = 2; i_hit < hits.size(); i_hit++){
     vector<TVector3> this_hit_collection;
+    double this_segment_size = 0.;
     for(unsigned int j_hit = hit_start_index; j_hit < i_hit; j_hit++){
       this_hit_collection.push_back(hits.at(j_hit));
+      if(j_hit < i_hit - 1){
+	double this_pitch = (hits.at(j_hit + 1) - hits.at(j_hit)).Mag();
+	this_segment_size = this_segment_size + this_pitch;
+      }
     }
+    if(this_hit_collection.size() < 3) continue;
+
+    TVector3 reco_start = hits.at(hit_start_index);
+    TVector3 reco_end = hits.at(i_hit);
 
     vector<TVector3> this_fitted = Fitter -> Linear3Dfit(this_hit_collection);
-    
     if(this_fitted.size() == 0) continue;
-    if(this_fitted.at(1).Mag() > segment_size){
-      MCSSegment this_segment;
 
-      TVector3 reco_start = hits.at(hit_start_index);
-      TVector3 reco_end = hits.at(i_hit);
+    if(i_hit == hits.size() - 1){
+      //cout << "[AnalyzerCore::SplitIntoSegments] Last hit" << endl;
+      MCSSegment this_segment;
+      TVector3 fitted_start = this_fitted.at(0);
+      TVector3 fitted_end = this_fitted.at(0) +this_fitted.at(1);
+      TVector3 fitted_vec = this_fitted.at(1);
+      this_segment.SetMCSSegment(reco_start, reco_end, fitted_start, fitted_end, fitted_vec);
+
+      if(fitted_vec.Mag() > 0.) out.push_back(this_segment);
+    }
+    else if(this_segment_size > segment_size){
+      //cout << "[AnalyzerCore::SplitIntoSegments] New segment with i_hit : " << i_hit << endl;
+      MCSSegment this_segment;
       TVector3 fitted_start = this_fitted.at(0);
       TVector3 fitted_end = this_fitted.at(0) + this_fitted.at(1);
       TVector3 fitted_vec = this_fitted.at(1);
       this_segment.SetMCSSegment(reco_start, reco_end, fitted_start, fitted_end, fitted_vec);
 
       out.push_back(this_segment);
-      hit_start_index = i_hit;
-    }
-    else if(i_hit == hits.size() - 1){
-      MCSSegment this_segment;
-
-      TVector3 reco_start = hits.at(hit_start_index);
-      TVector3 reco_end = hits.at(i_hit);
-      TVector3 fitted_start = this_fitted.at(0);
-      TVector3 fitted_end = this_fitted.at(0) +this_fitted.at(1);
-      TVector3 fitted_vec = this_fitted.at(1);
-      this_segment.SetMCSSegment(reco_start, reco_end, fitted_start, fitted_end, fitted_vec);
-
-      out.push_back(this_segment);
+      hit_start_index = i_hit + 1;
+      //cout << "[AnalyzerCore::SplitIntoSegments] hit_start_index : " << hit_start_index << endl;
     }
 
     this_hit_collection.clear();
@@ -1029,6 +1035,17 @@ vector<MCSSegment> AnalyzerCore::SplitIntoSegments(const vector<TVector3> & hits
   return out;
 }
 
+TVector3 AnalyzerCore::RotateToZaxis(TVector3 reference_vec, TVector3 input_vec){
+  double theta = reference_vec.Theta();
+  TVector3 ortho_line_on_xy(1., -1. * reference_vec.X() / reference_vec.Y(), 0.);
+  TVector3 cross = reference_vec.Cross(ortho_line_on_xy);
+  if(cross.Z() < 0.) theta = -1. * theta;
+  // double dot = reference_vec.Dot(ortho_line_on_xy);
+  //cout << "[AnalyzerCore::RotateToZaxis] dot : " << dot << ", cross.Z() : " << cross.Z() << endl;
+  TVector3 out(input_vec);
+  out.Rotate(-1 * theta, ortho_line_on_xy);
+  return out;
+}
 
 //==================
 //==== Plotting

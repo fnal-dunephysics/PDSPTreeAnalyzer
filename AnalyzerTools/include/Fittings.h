@@ -33,7 +33,7 @@ class Fittings {
     // Since magnitude of the direction vector is not required to be 1, we can set z1 = 1 without loosing generality
     x = p[0] + p[1]*t;
     y = p[2] + p[3]*t;
-    z = t;
+    z = p[4] + t;
   }
 
   struct SumDistance2 {
@@ -47,8 +47,8 @@ class Fittings {
       // distance line point is D= | (xp-x0) cross  ux |
       // where ux is direction of line and x0 is a point in the line (like t = 0)
       TVector3 xp(x,y,z);
-      TVector3 x0(p[0], p[2], 0. );
-      TVector3 x1(p[0] + p[1], p[2] + p[3], 1. );
+      TVector3 x0(p[0], p[2], p[4] );
+      TVector3 x1(p[0] + p[1], p[2] + p[3], p[4] + 1. );
       TVector3 u = (x1-x0).Unit();
       double d2 = ((xp-x0).Cross(u)).Mag2();
       return d2;

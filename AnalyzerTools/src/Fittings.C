@@ -30,10 +30,10 @@ vector<TVector3> Fittings::Linear3Dfit(const vector<TVector3> & hits, bool save_
   // == Fit
   ROOT::Fit::Fitter fitter;
   SumDistance2 chi2_def(this_gr);
-  ROOT::Math::Functor fitted_obj(chi2_def,4);
-  double param_start[4] = {1,1,1,1};
+  ROOT::Math::Functor fitted_obj(chi2_def,5);
+  double param_start[5] = {1,1,1,1,1};
   fitter.SetFCN(fitted_obj, param_start);
-  for (int i = 0; i < 4; ++i) fitter.Config().ParSettings(i).SetStepSize(0.01);
+  for (int i = 0; i < 5; ++i) fitter.Config().ParSettings(i).SetStepSize(0.01);
 
   bool ok = fitter.FitFCN();
   if (!ok) {
@@ -46,12 +46,31 @@ vector<TVector3> Fittings::Linear3Dfit(const vector<TVector3> & hits, bool save_
   // == Summarize result
   const double * parFit = result.GetParams();
   TVector3 dir_vec(parFit[1], parFit[3], 1.);
-  double first_hit_Z = hits.at(0).Z();
-  double last_hit_Z = hits.back().Z();
-  TVector3 fitted_start(parFit[0] + parFit[1] * first_hit_Z, parFit[2] + parFit[3] * first_hit_Z, first_hit_Z);
-  TVector3 fitted_end(parFit[0] + parFit[1] * last_hit_Z, parFit[2] + parFit[3] * last_hit_Z, last_hit_Z);
-  out.push_back(fitted_start);
-  out.push_back(fitted_end - fitted_start);
+  TVector3 first_hit(hits.at(0).X(), hits.at(0).Y(), hits.at(0).Z());
+  TVector3 last_hit(hits.back().X(), hits.back().Y(), hits.back().Z());
+  TVector3 fitted_start_fixed_X(first_hit.X(), (parFit[3] / parFit[1]) * (first_hit.X() - parFit[0]) + parFit[2], (first_hit.X() - parFit[0]) / parFit[1] + parFit[4]);
+  TVector3 fitted_start_fixed_Y((parFit[1] / parFit[3]) * (first_hit.Y() - parFit[2]) + parFit[0], first_hit.Y(), (first_hit.Y() - parFit[2]) / parFit[3] + parFit[4]);
+  TVector3 fitted_start_fixed_Z(parFit[1] * (first_hit.Z() - parFit[4]) + parFit[0], parFit[3] * (first_hit.Z() - parFit[4]) + parFit[2], first_hit.Z());
+  TVector3 fitted_end_fixed_X(last_hit.X(), (parFit[3] / parFit[1]) * (last_hit.X() - parFit[0]) + parFit[2], (last_hit.X() - parFit[0]) / parFit[1] + parFit[4]);
+  TVector3 fitted_end_fixed_Y((parFit[1] / parFit[3]) * (last_hit.Y() - parFit[2]) + parFit[0], last_hit.Y(), (last_hit.Y() - parFit[2]) / parFit[3] + parFit[4]);
+  TVector3 fitted_end_fixed_Z(parFit[1] * (last_hit.Z() - parFit[4]) + parFit[0], parFit[3] * (last_hit.Z() - parFit[4]) + parFit[2], last_hit.Z());
+  TVector3 fitted_vec_fixed_X = fitted_end_fixed_X - fitted_start_fixed_X;
+  TVector3 fitted_vec_fixed_Y = fitted_end_fixed_Y - fitted_start_fixed_Y;
+  TVector3 fitted_vec_fixed_Z = fitted_end_fixed_Z - fitted_start_fixed_Z;
+  
+  // == Return shortest fitted vector
+  if(fitted_vec_fixed_X.Mag() < fitted_vec_fixed_Y.Mag() && fitted_vec_fixed_X.Mag() < fitted_vec_fixed_Z.Mag()){
+    out.push_back(fitted_start_fixed_X);
+    out.push_back(fitted_vec_fixed_X);
+  }
+  else if(fitted_vec_fixed_Y.Mag() < fitted_vec_fixed_X.Mag() && fitted_vec_fixed_Y.Mag() < fitted_vec_fixed_Z.Mag()){
+    out.push_back(fitted_start_fixed_Y);
+    out.push_back(fitted_vec_fixed_Y);
+  }
+  else{
+    out.push_back(fitted_start_fixed_Z);
+    out.push_back(fitted_vec_fixed_Z);
+  }
 
   //cout << "[Fittings::line3Dfit] first_hit_Z : " << first_hit_Z << ", last_hit_Z : " << last_hit_Z  << endl;
 
@@ -59,12 +78,11 @@ vector<TVector3> Fittings::Linear3Dfit(const vector<TVector3> & hits, bool save_
   this_Y_vec.clear();
   this_Z_vec.clear();
 
-  
   if(save_gr){
     this_gr -> Draw("p0");
     int n = 1000;
-    double t0 = first_hit_Z;
-    double t1 = last_hit_Z;
+    double t0 = first_hit.Z() - parFit[4];
+    double t1 = last_hit.Z() - parFit[4];
     double dt = (t1 - t0) / (n + 0.);
     TGraph2D *l = new TGraph2D();
     for (int i = 0; i <n; ++i) {
