@@ -17,7 +17,7 @@ class MCSSegment{
   MCSSegment();
   ~MCSSegment();
 
-  void SetMCSSegment(TVector3 i_reco_hit_start, TVector3 i_reco_hit_end, TVector3 i_fitted_start, TVector3 i_fitted_end, TVector3 i_fitted_vec);
+  void SetMCSSegment(TVector3 i_reco_hit_start, TVector3 i_reco_hit_end, TVector3 i_fitted_start, TVector3 i_fitted_end, TVector3 i_fitted_vec, double i_range);
   void TestClass();
 
   inline TVector3 RecoStart() const { return j_reco_hit_start; }
@@ -25,7 +25,7 @@ class MCSSegment{
   inline TVector3 FittedStart() const { return j_fitted_start; }
   inline TVector3 FittedEnd() const { return j_fitted_end; }
   inline TVector3 FittedVec() const { return j_fitted_vec; }
-
+  inline double Range() const { return j_range; }
  private:
   
   TVector3 j_reco_hit_start;
@@ -33,6 +33,7 @@ class MCSSegment{
   TVector3 j_fitted_start;
   TVector3 j_fitted_end;
   TVector3 j_fitted_vec;
+  double j_range;
 };
 
 #endif

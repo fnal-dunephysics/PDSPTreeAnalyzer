@@ -1011,7 +1011,7 @@ vector<MCSSegment> AnalyzerCore::SplitIntoSegments(const vector<TVector3> & hits
       TVector3 fitted_start = this_fitted.at(0);
       TVector3 fitted_end = this_fitted.at(0) +this_fitted.at(1);
       TVector3 fitted_vec = this_fitted.at(1);
-      this_segment.SetMCSSegment(reco_start, reco_end, fitted_start, fitted_end, fitted_vec);
+      this_segment.SetMCSSegment(reco_start, reco_end, fitted_start, fitted_end, fitted_vec, this_segment_size);
 
       if(fitted_vec.Mag() > 0.) out.push_back(this_segment);
     }
@@ -1021,10 +1021,10 @@ vector<MCSSegment> AnalyzerCore::SplitIntoSegments(const vector<TVector3> & hits
       TVector3 fitted_start = this_fitted.at(0);
       TVector3 fitted_end = this_fitted.at(0) + this_fitted.at(1);
       TVector3 fitted_vec = this_fitted.at(1);
-      this_segment.SetMCSSegment(reco_start, reco_end, fitted_start, fitted_end, fitted_vec);
+      this_segment.SetMCSSegment(reco_start, reco_end, fitted_start, fitted_end, fitted_vec, this_segment_size);
 
       out.push_back(this_segment);
-      hit_start_index = i_hit + 1;
+      hit_start_index = i_hit;
       //cout << "[AnalyzerCore::SplitIntoSegments] hit_start_index : " << hit_start_index << endl;
     }
 
