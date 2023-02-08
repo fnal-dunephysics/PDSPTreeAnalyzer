@@ -224,6 +224,7 @@ echo "@@ Finished!!"
 ls -alg ${{thisOutputCreationDir}}/
 
 echo "ifdh cp "${{thisOutputCreationDir}}/{0} ${{outDir}}/{0}
+ifdh rm ${{outDir}}/{0}
 ifdh cp ${{thisOutputCreationDir}}/{0} ${{outDir}}/{0}
 echo "@@ Done!"
 

@@ -1,7 +1,5 @@
 #include "PionKEScale.h"
 
-TRandom3 gRan(1800);
-
 void PionKEScale::initializeAnalyzer(){
 
   cout << "[[PionAnalyzer::initializeAnalyzer]] Beam Momentum : " << Beam_Momentum << endl;
@@ -404,6 +402,13 @@ void PionKEScale::Run_Daughter_MCS_for_Segments(const vector<TVector3> & reco_po
   double theta_3D = rotated_next_vec.Theta();
 
   if(this_vec_theta > 1.55 && this_vec_theta < 1.59) return;
+
+  if(name == "14cm" && fabs(theta_xz) < 0.001){
+    cout << Form("this_vec (%.5f, %.5f, %.5f) %.2f, next_vec (%.5f, %.5f, %.5f) %.2f",
+		 this_vec.X(), this_vec.Y(), this_vec.Z(), this_vec.Mag(), next_vec.X(), next_vec.Y(), next_vec.Z(), next_vec.Mag()) << endl;
+    cout << Form("rotated_this_vec (%.5f, %.5f, %.5f) %.2f, rotated_next_vec (%.5f, %.5f, %.5f) %.2f",
+		 rotated_this_vec.X(), rotated_this_vec.Y(), rotated_this_vec.Z(), rotated_this_vec.Mag(), rotated_next_vec.X(), rotated_next_vec.Y(), rotated_next_vec.Z(), rotated_next_vec.Mag()) << endl;
+  }
 
   //cout << "[PionKEScale::Run_Daughter_MCS_for_Segments] " << name << ", theta_yz : " << theta_yz << ", theta_xz : " << theta_xz << ", theta_3D : " << theta_3D << endl;
   JSFillHist("Daughter_MCS", "Daughter_MCS_true_P_vs_theta_yz_" + name + "_" + this_PdgID_str, true_P, theta_yz, 1., 3000., 0., 3000., 1000., -0.5, 0.5);
