@@ -183,6 +183,14 @@ public:
   //==================
   vector<MCSSegment> SplitIntoSegments(const vector<TVector3> & hits, double segment_size);
   TVector3 RotateToZaxis(TVector3 reference_vec, TVector3 input);
+  double HL_kappa_a = 0.022;
+  double HL_kappa_c = 9.078;
+  double HL_sigma_res = 0.001908;
+  double HL_epsilon = 0.038;
+  double MCS_Get_HL_Sigma(double segment_size, double P, double mass);
+  double MCS_Get_Likelihood(double HL_sigma, double delta_angle);
+  double MCS_Likelihood_Fitting(const vector<MCSSegment> segments, double segment_size, int PID);
+  
 
   //==================
   //===Plotting

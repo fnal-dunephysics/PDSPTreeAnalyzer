@@ -9,6 +9,7 @@
 #pragma link C++ class AnalyzerCore+;
 #pragma link C++ class PionKEScale+;
 #pragma link C++ class MCS_Angle_Shapes+;
+#pragma link C++ class MCS_Performance+;
 #pragma link C++ class PionQE+;
 
 #endif

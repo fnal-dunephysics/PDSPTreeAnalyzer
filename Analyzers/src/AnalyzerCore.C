@@ -1047,6 +1047,79 @@ TVector3 AnalyzerCore::RotateToZaxis(TVector3 reference_vec, TVector3 input_vec)
   return out;
 }
 
+double AnalyzerCore::MCS_Get_HL_Sigma(double segment_size, double P, double mass){
+  double kappa = ( (HL_kappa_a / (P*P)) + HL_kappa_c );
+  double one_over_pbeta = pow(P*P + mass * mass, 0.5) / (P*P);
+  double root_term = pow(segment_size / 14., 0.5);
+
+  double sigma_HL = kappa * one_over_pbeta * root_term * (1 + HL_epsilon * log(segment_size / 14.));
+  double out = pow(sigma_HL * sigma_HL + HL_sigma_res * HL_sigma_res, 0.5);
+  return out;
+}
+
+double AnalyzerCore::MCS_Get_Likelihood(double HL_sigma, double delta_angle){
+  double out = TMath::Log(HL_sigma) + 0.5 * pow(delta_angle / HL_sigma, 2);
+  return out;
+}
+
+double AnalyzerCore::MCS_Likelihood_Fitting(const vector<MCSSegment> segments, double segment_size, int PID){
+
+  cout << "[AnalyzerCore::MCS_Likelihood_Fitting] Start" << endl;
+
+  double out = -9999.;
+  if(segments.size() < 3) return out;
+
+  double P_step = 2.; // -- [MeV]
+  int N_step = 1000;
+  double total_range = 0.;
+  for(unsigned int i = 0; i < segments.size(); i++){
+    double this_segment_range = segments.at(i).Range();
+    total_range = total_range + this_segment_range;
+  }
+
+  double KE_from_range = map_BB[PID] -> KEFromRangeSpline(total_range);
+  double P_from_range = map_BB[PID] -> KEtoMomentum(KE_from_range);
+  double best_P = -999.;
+  double best_mlogL = 99999999.;
+  int i_best_mlogL = -1.;
+  for(int i = 0; i < N_step; i++){
+    vector<double> this_P_vec;
+    vector<double> this_theta_xz_vec;
+    vector<double> this_theta_yz_vec;
+    double this_P = P_from_range + P_step * (i + 0.);
+    this_P_vec.push_back(this_P);
+    for(int j = 0; j < segments.size() - 1; j++){
+      TVector3 this_vec = segments.at(j).FittedVec();
+      TVector3 next_vec = segments.at(j + 1).FittedVec();
+      TVector3 rotated_this_vec = RotateToZaxis(this_vec, this_vec);
+      TVector3 rotated_next_vec = RotateToZaxis(this_vec, next_vec);
+      double this_theta_xz = TMath::ATan(rotated_next_vec.X() / rotated_next_vec.Z());
+      double this_theta_yz = TMath::ATan(rotated_next_vec.Y() / rotated_next_vec.Z());
+      this_theta_xz_vec.push_back(this_theta_xz);
+      this_theta_yz_vec.push_back(this_theta_yz);
+
+      if(j < segments.size() - 2){
+	double this_partial_range = segments.at(j).Range();
+	double this_KE = map_BB[PID] -> MomentumtoKE(this_P);
+	double next_KE = map_BB[PID] -> KEAtLength(this_KE, this_partial_range);
+	double next_P = map_BB[PID] -> KEtoMomentum(next_KE);
+	this_P_vec.push_back(next_P);
+	this_P = next_P;
+      }
+    }
+
+    for(unsigned int j = 0; j < this_theta_xz_vec.size(); j++){
+      cout << Form("%d P : %.2f, theta_xz : %.2e, theta_yz :  %.2e", j, this_P_vec.at(j), this_theta_xz_vec.at(j), this_theta_yz_vec.at(j)) << endl;
+    }
+
+    this_P_vec.clear();
+    this_theta_xz_vec.clear();
+    this_theta_yz_vec.clear();
+  }
+
+  return out;
+}
+
 //==================
 //==== Plotting
 //==================
