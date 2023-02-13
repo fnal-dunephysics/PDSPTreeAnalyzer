@@ -1077,8 +1077,8 @@ double AnalyzerCore::MCS_Likelihood_Fitting(const vector<MCSSegment> segments, d
     total_range = total_range + this_segment_range;
   }
 
-  double KE_from_range = map_BB[PID] -> KEFromRangeSpline(total_range);
-  double P_from_range = map_BB[PID] -> KEtoMomentum(KE_from_range);
+  double KE_from_range = map_BB[abs(PID)] -> KEFromRangeSpline(total_range);
+  double P_from_range = map_BB[abs(PID)] -> KEtoMomentum(KE_from_range);
   double best_P = -999.;
   double best_mlogL = 99999999.;
   int i_best_mlogL = -1.;
@@ -1100,9 +1100,9 @@ double AnalyzerCore::MCS_Likelihood_Fitting(const vector<MCSSegment> segments, d
 
       if(j < segments.size() - 2){
 	double this_partial_range = segments.at(j).Range();
-	double this_KE = map_BB[PID] -> MomentumtoKE(this_P);
-	double next_KE = map_BB[PID] -> KEAtLength(this_KE, this_partial_range);
-	double next_P = map_BB[PID] -> KEtoMomentum(next_KE);
+	double this_KE = map_BB[abs(PID)] -> MomentumtoKE(this_P);
+	double next_KE = map_BB[abs(PID)] -> KEAtLength(this_KE, this_partial_range);
+	double next_P = map_BB[abs(PID)] -> KEtoMomentum(next_KE);
 	this_P_vec.push_back(next_P);
 	this_P = next_P;
       }

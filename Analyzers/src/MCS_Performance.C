@@ -37,7 +37,6 @@ void MCS_Performance::executeEvent(){
   // == Functions to study beam
   Run_Beam();
 
-
   // == Functions to study daughters
   vector<Daughter> daughters_all = GetAllDaughters();
   vector<Daughter> pions = GetPions(daughters_all);
@@ -54,7 +53,7 @@ void MCS_Performance::Run_Beam(){
   int this_N_hits = total_N_hits;
   double this_KE_BB = KE_ff_reco;
   int this_PDG = 211;
-  if(pi_type == 1 || pi_type == 2) this_PDG = 211;
+  if(pi_type == 0 || pi_type == 1 || pi_type == 2) this_PDG = 211;
   else if(pi_type == 3) this_PDG = 13;
   else return;
 
@@ -122,7 +121,7 @@ void MCS_Performance::Run_Beam_Segments(const vector<TVector3> & reco_position_v
   double P_from_range = map_BB[this_PdgID] -> KEtoMomentum(KE_from_range);
 
   vector<TH1D*> this_likelihood_hist = Calculate_Likelihoods_for_Performance(segments, segment_size, this_PdgID);
-  cout << "[MCS_Performance::Run_Beam_Segments] segments.size() : " << segments.size() << ", this_likelihood_hist.size() : " << this_likelihood_hist.size() << endl;
+  //cout << "[MCS_Performance::Run_Beam_Segments] segments.size() : " << segments.size() << ", this_likelihood_hist.size() : " << this_likelihood_hist.size() << endl;
   for(unsigned int i = 0; i < this_likelihood_hist.size(); i++){
     TString this_hist_name = Form("Run%d_Evt%d_Segment%d_likelihood", evt.run, evt.event, i);
     this_likelihood_hist.at(i) -> SetName(this_hist_name);
@@ -138,9 +137,9 @@ void MCS_Performance::Run_Beam_Segments(const vector<TVector3> & reco_position_v
       double P_fitted = this_likelihood_sum -> GetBinCenter(this_bin_max);
       double res = (P_fitted - true_P) / true_P;
       double inv_res = (1./P_fitted - 1./true_P) / (1./true_P);
-      JSFillHist("Beam", "Beam_MCS_Res_" + name + "_" + this_N_segments_str + "_" + this_PdgID_str, res, 1., 400., -2., 2.);
-      JSFillHist("Beam", "Beam_MCS_InvRes_" + name + "_" + this_N_segments_str + "_" + this_PdgID_str, inv_res, 1., 400., -2., 2.);
-      JSFillHist("Beam", "Beam_MCS_P_true_vs_P_MCS_" + name + "_" + this_N_segments_str + "_" + this_PdgID_str, true_P, P_fitted, 1., 400., 0., 2000., 400., 0., 2000.);
+      JSFillHist("Beam", "Beam_MCS_Res_" + name + "_" + this_N_segments_str + "_" + pi_type_str, res, 1., 400., -2., 2.);
+      JSFillHist("Beam", "Beam_MCS_InvRes_" + name + "_" + this_N_segments_str + "_" + pi_type_str, inv_res, 1., 400., -2., 2.);
+      JSFillHist("Beam", "Beam_MCS_P_true_vs_P_MCS_" + name + "_" + this_N_segments_str + "_" + pi_type_str, true_P, P_fitted, 1., 400., 0., 2000., 400., 0., 2000.);
     }
   }
 
@@ -151,16 +150,16 @@ void MCS_Performance::Run_Beam_Segments(const vector<TVector3> & reco_position_v
   int bin_max_y = this_likelihood_sum -> GetMaximumBin();
   double P_fitted = this_likelihood_sum -> GetBinCenter(bin_max_y);
   double res = (P_fitted - true_P) / true_P;
-  cout << Form("[MCS_Performance::Run_Beam_Segments] Run%d_Evt%d, PID : %d, true_P : %.2f, Start P : %.2f, P_fitted : %.2f, res : %.2f", evt.run, evt.event, this_PdgID, true_P, P_from_range, P_fitted, res) << endl;
-  JSFillHist("Beam", "Beam_MCS_Res_" + this_PdgID_str, res, 1., 400., -2., 2.);
+  //cout << Form("[MCS_Performance::Run_Beam_Segments] " + name + " Run%d_Evt%d, PID : %d, true_P : %.2f, Start P : %.2f, P_fitted : %.2f, res : %.2f", evt.run, evt.event, this_PdgID, true_P, P_from_range, P_fitted, res) << endl;
+  JSFillHist("Beam", "Beam_MCS_Res_" + name + "_" + pi_type_str, res, 1., 400., -2., 2.);
 
-
-
-
+  // -- Clean up
   for(unsigned i = 0; i < this_likelihood_hist.size(); i++){
     delete this_likelihood_hist.at(i);
   }
   this_likelihood_hist.clear();
+
+  return;
 }
 
 void MCS_Performance::Run_Daughter(const vector<Daughter>& pions){
@@ -189,11 +188,13 @@ void MCS_Performance::Run_Daughter(const vector<Daughter>& pions){
     }
     double true_P = this_daughter.PFP_true_byHits_startP() * 1000.;
 
-    Run_Daughter_Segments(reco_position_vec, true_P, this_PdgID, 4., "4cm");
-    Run_Daughter_Segments(reco_position_vec, true_P, this_PdgID, 5., "5cm");
-    Run_Daughter_Segments(reco_position_vec, true_P, this_PdgID, 8., "8cm");
-    Run_Daughter_Segments(reco_position_vec, true_P, this_PdgID, 10., "10cm");
-    Run_Daughter_Segments(reco_position_vec, true_P, this_PdgID, 14., "14cm");
+    if(abs(this_PdgID) == 13 || abs(this_PdgID) == 211 || abs(this_PdgID) == 2212){
+      Run_Daughter_Segments(reco_position_vec, true_P, this_PdgID, 4., "4cm");
+      Run_Daughter_Segments(reco_position_vec, true_P, this_PdgID, 5., "5cm");
+      Run_Daughter_Segments(reco_position_vec, true_P, this_PdgID, 8., "8cm");
+      Run_Daughter_Segments(reco_position_vec, true_P, this_PdgID, 10., "10cm");
+      Run_Daughter_Segments(reco_position_vec, true_P, this_PdgID, 14., "14cm");
+    }
   }
 
   return;
@@ -217,11 +218,11 @@ void MCS_Performance::Run_Daughter_Segments(const vector<TVector3> & reco_positi
     double this_segment_range = segments.at(i).Range();
     total_range = total_range + this_segment_range;
   }
-  double KE_from_range = map_BB[this_PdgID] -> KEFromRangeSpline(total_range);
-  double P_from_range = map_BB[this_PdgID] -> KEtoMomentum(KE_from_range);
+  double KE_from_range = map_BB[abs(this_PdgID)] -> KEFromRangeSpline(total_range);
+  double P_from_range = map_BB[abs(this_PdgID)] -> KEtoMomentum(KE_from_range);
 
   vector<TH1D*> this_likelihood_hist = Calculate_Likelihoods_for_Performance(segments, segment_size, this_PdgID);
-  cout << "[MCS_Performance::Run_Daughter_Segments] segments.size() : " << segments.size() << ", this_likelihood_hist.size() : " << this_likelihood_hist.size() << endl;
+  //cout << "[MCS_Performance::Run_Daughter_Segments] segments.size() : " << segments.size() << ", this_likelihood_hist.size() : " << this_likelihood_hist.size() << endl;
   TH1D *this_likelihood_sum = (TH1D*)this_likelihood_hist.at(0) -> Clone();
   for(unsigned int i = 1; i < this_likelihood_hist.size(); i++){
     this_likelihood_sum -> Add(this_likelihood_hist.at(i));
@@ -241,13 +242,17 @@ void MCS_Performance::Run_Daughter_Segments(const vector<TVector3> & reco_positi
   int bin_max_y = this_likelihood_sum -> GetMaximumBin();
   double P_fitted = this_likelihood_sum -> GetBinCenter(bin_max_y);
   double res = (P_fitted - true_P) / true_P;
-  cout << Form("[MCS_Performance::Run_Daughter_Segments] Run%d_Evt%d, PID : %d, true_P : %.2f, Start P : %.2f, P_fitted : %.2f, res : %.2f", evt.run, evt.event, this_PdgID, true_P, P_from_range, P_fitted, res) << endl;
+  //cout << Form("[MCS_Performance::Run_Daughter_Segments] " + name + " Run%d_Evt%d, PID : %d, true_P : %.2f, Start P : %.2f, P_fitted : %.2f, res : %.2f", evt.run, evt.event, this_PdgID, true_P, P_from_range, P_fitted, res) << endl;
   JSFillHist("Daughter", "Daughter_MCS_Res_" + this_PdgID_str, res, 1., 400., -2., 2.);
 
+  // -- Clean up
   for(unsigned i = 0; i < this_likelihood_hist.size(); i++){
     delete this_likelihood_hist.at(i);
+    //this_likelihood_hist.at(i) = nullptr;
   }
   this_likelihood_hist.clear();
+
+  return;
 }
 
 vector<TH1D*> MCS_Performance::Calculate_Likelihoods_for_Performance(const vector<MCSSegment> & segments, double segment_size, int PID){
@@ -265,8 +270,8 @@ vector<TH1D*> MCS_Performance::Calculate_Likelihoods_for_Performance(const vecto
     total_range = total_range + this_segment_range;
   }
 
-  double KE_from_range = map_BB[PID] -> KEFromRangeSpline(total_range);
-  double P_from_range = map_BB[PID] -> KEtoMomentum(KE_from_range);
+  double KE_from_range = map_BB[abs(PID)] -> KEFromRangeSpline(total_range);
+  double P_from_range = map_BB[abs(PID)] -> KEtoMomentum(KE_from_range);
   double KE_step = 10.;
   int N_step = 200;
 
@@ -288,19 +293,21 @@ vector<TH1D*> MCS_Performance::Calculate_Likelihoods_for_Performance(const vecto
     theta_yz_vec.push_back(this_theta_yz);
  
     TString this_segment_str = Form("segment%d", i);
+    TH1D* h_check = (TH1D*)gROOT -> FindObject(this_segment_str);
+    delete h_check;
     TH1D* this_hist = new TH1D(this_segment_str, this_segment_str, 1500., 0., 3000.);
     out.push_back(this_hist);
   }
 
   for(int i = 0; i < N_step; i++){
     double this_start_KE = KE_from_range + KE_step * (i + 0.);
-    double this_start_P = map_BB[PID] -> KEtoMomentum(this_start_KE);
+    double this_start_P = map_BB[abs(PID)] -> KEtoMomentum(this_start_KE);
     double this_KE = this_start_KE;
     //cout << "[MCS_Performance::Calculate_Likelihoods_for_Performance] " << i << ", this_KE : " << this_KE << endl;
     //double this_start_P = P_from_range + P_step * (i + 0.);
     for(unsigned int j = 0; j < out.size(); j++){
-      this_KE = map_BB[PID] -> KEAtLength(this_KE, range_vec.at(j));
-      double this_P = map_BB[PID] -> KEtoMomentum(this_KE);
+      this_KE = map_BB[abs(PID)] -> KEAtLength(this_KE, range_vec.at(j));
+      double this_P = map_BB[abs(PID)] -> KEtoMomentum(this_KE);
       double this_HL_sigma = MCS_Get_HL_Sigma(segment_size, this_P, this_mass);
       double N_sigma_xz = theta_xz_vec.at(j) / this_HL_sigma;
       double N_sigma_yz = theta_yz_vec.at(j) / this_HL_sigma;
