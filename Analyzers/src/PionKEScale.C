@@ -36,14 +36,14 @@ void PionKEScale::executeEvent(){
 
   // == Functions to study beam
   //Run_beam_dEdx_vector();
-  Run_beam_MCS();
+  //Run_beam_MCS();
 
   // == Functions to study daughters
   vector<Daughter> daughters_all = GetAllDaughters();
   vector<Daughter> pions = GetPions(daughters_all);
   if(pions.size() > 0){
-    //Run_Daughter_HypFit(pions);
-    Run_Daughter_MCS(pions);
+    Run_Daughter_HypFit(pions);
+    //Run_Daughter_MCS(pions);
   }
 
   return;
@@ -237,40 +237,21 @@ void PionKEScale::Run_Daughter_HypFit(const vector<Daughter>& pions){
 
     // == Select stopped pion
     if(this_chi2_pion < 6.){
-      if(evt.MC) JSFillHist("Daughter_pion", "Daughter_pion_true_start_KE_vs_KE_BB_chi2_pion_cut_" + particle_str, true_KE, this_KE_BB, 1., 400., 0., 2000., 400., 0., 2000.);
-      //FitWithVectors(this_daughter.allTrack_calibrated_dEdX_SCE(), this_daughter.allTrack_resRange_SCE(), particle_str);
-
-      if(this_daughter.allTrack_resRange_SCE().size() > 1){
-	
-	cout << "[PionKEScale::Run_Daughter_HypFit] A reco pion" << endl;
-	cout << "[PionKEScale::Run_Daughter_HypFit] this_daughter.allTrack_resRange_SCE().size() : " << this_daughter.allTrack_resRange_SCE().size() << endl;
-	cout << "[PionKEScale::Run_Daughter_HypFit] this_daughter.allTrack_calibrated_dEdX_SCE().size() : " << this_daughter.allTrack_calibrated_dEdX_SCE().size() << endl;
-	cout << "[PionKEScale::Run_Daughter_HypFit] this_daughter.allTrack_calo_X().size() : " << this_daughter.allTrack_calo_X().size() << endl;
-	cout << "[PionKEScale::Run_Daughter_HypFit] this_daughter.allTrack_calo_Y().size() : " << this_daughter.allTrack_calo_Y().size() << endl;
-        cout << "[PionKEScale::Run_Daughter_HypFit] this_daughter.allTrack_calo_Z().size() : " << this_daughter.allTrack_calo_Z().size() << endl;
-
-	for(unsigned int i_hit = 0; i_hit < this_daughter.allTrack_resRange_SCE().size() - 1; i_hit++){
-	  double this_range = this_daughter.allTrack_resRange_SCE().at(i_hit);
-	  double this_X = this_daughter.allTrack_calo_X().at(i_hit);
-	  double this_Y = this_daughter.allTrack_calo_Y().at(i_hit);
-	  double this_Z = this_daughter.allTrack_calo_Z().at(i_hit);
-	  double next_range = this_daughter.allTrack_resRange_SCE().at(i_hit + 1);
-	  double next_X = this_daughter.allTrack_calo_X().at(i_hit + 1);
-	  double next_Y = this_daughter.allTrack_calo_Y().at(i_hit + 1);
-	  double next_Z = this_daughter.allTrack_calo_Z().at(i_hit + 1);
-
-	  double distance = pow( pow(this_X - next_X, 2) + pow(this_Y - next_Y, 2) + pow(this_Z - next_Z, 2), 0.5);
-	  double diff_range = next_range - this_range;
-	  cout << i_hit << ", diff_range : " << diff_range << ", distance : " << distance << endl;
-	}
+      if(evt.MC){
+	JSFillHist("Daughter_pion", "Daughter_pion_true_start_KE_vs_KE_BB_chi2_pion_cut_" + particle_str, true_KE, this_KE_BB, 1., 400., 0., 2000., 400., 0., 2000.);
+	double this_range_res = (this_KE_BB - true_KE) / true_KE;
+	double this_ragne_invres = (1./this_KE_BB - 1./true_KE) / (1./true_KE);
+	JSFillHist("Daughter_pion", "Daughter_pion_true_start_KE_vs_KE_BB_Res_chi2_pion_cut_" + particle_str, true_KE, this_range_res, 1., 400., 0., 2000., 400., -2., 2.);
+        JSFillHist("Daughter_pion", "Daughter_pion_true_start_KE_vs_KE_BB_InvRes_chi2_pion_cut_" + particle_str, true_KE, this_ragne_invres, 1., 400., 0., 2000., 400., -2., 2.);
       }
+      FitWithVectors(this_daughter.allTrack_calibrated_dEdX_SCE(), this_daughter.allTrack_resRange_SCE(), particle_str, true_KE);
     }
   }
 
   return;
 }
 
-void PionKEScale::FitWithVectors(const vector<double>& dEdx, const vector<double>& range, TString particle_str){
+void PionKEScale::FitWithVectors(const vector<double>& dEdx, const vector<double>& range, TString particle_str, double true_KE){
 
   int total_N_hits = dEdx.size();
   if(total_N_hits < 11) return;
@@ -316,9 +297,30 @@ void PionKEScale::FitWithVectors(const vector<double>& dEdx, const vector<double
     JSFillHist("Denom", "KE_beam_" + N_hits_str + "_" + particle_str, this_KE_BB, 1., 1500., 0., 1500.);
     if(Length_HypFit_Likelihood > 0.){
       JSFillHist("Gaussian", "Gaussian_KE_fit_vs_KE_BB_" + N_hits_str + "_" + particle_str, KE_HypFit_Gaussian, this_KE_BB, 1., 300., 0., 1500., 300., 0., 1500.);
+      double this_Gaus_fitted_res = (KE_HypFit_Gaussian - this_KE_BB) / this_KE_BB;
+      double this_Gaus_fitted_invres = (1./KE_HypFit_Gaussian - 1./this_KE_BB) / (1./this_KE_BB);
+      JSFillHist("Gaussian", "Gaussian_KE_BB_vs_KE_fit_Res_" + N_hits_str + "_" + particle_str, this_KE_BB, this_Gaus_fitted_res, 1., 300., 0., 1500., 400., -2., 2.);
+      JSFillHist("Gaussian", "Gaussian_KE_BB_vs_KE_fit_InvRes_" + N_hits_str + "_" + particle_str,this_KE_BB, this_Gaus_fitted_invres, 1., 300., 0., 1500., 400., -2., 2.);
+
+      if(evt.MC){
+	double this_Gaus_true_res = (KE_HypFit_Gaussian - true_KE) / true_KE;
+	double this_Gaus_true_invres = (1./KE_HypFit_Gaussian - 1./true_KE) / (1./true_KE);
+	JSFillHist("Gaussian", "Gaussian_KE_true_vs_KE_fit_Res_" + N_hits_str + "_" + particle_str, true_KE, this_Gaus_true_res, 1., 300., 0., 1500., 400., -2., 2.);
+	JSFillHist("Gaussian", "Gaussian_KE_true_vs_KE_fit_InvRes_" + N_hits_str + "_" + particle_str, true_KE, this_Gaus_true_invres, 1., 300., 0., 1500., 400., -2., 2.);
+      }
     }
     if(Length_HypFit_Likelihood > 0.){
       JSFillHist("Likelihood", "Likelihood_KE_fit_vs_KE_BB_" + N_hits_str + "_" + particle_str, KE_HypFit_Likelihood, this_KE_BB, 1., 300., 0., 1500., 300., 0., 1500.);
+      double this_Likelihood_fitted_res = (KE_HypFit_Likelihood - this_KE_BB) /this_KE_BB;
+      double this_Likelihood_fitted_invres = (1./KE_HypFit_Likelihood -1./this_KE_BB) / (1./this_KE_BB);
+      JSFillHist("Likelihood", "Likelihood_KE_BB_vs_KE_fit_Res_" + N_hits_str + "_" + particle_str,this_KE_BB, this_Likelihood_fitted_res, 1., 300., 0., 1500., 400., -2., 2.);
+      JSFillHist("Likelihood", "Likelihood_KE_BB_vs_KE_fit_InvRes_" + N_hits_str + "_" + particle_str,this_KE_BB, this_Likelihood_fitted_invres, 1., 300., 0., 1500., 400., -2., 2.);
+      if(evt.MC){
+	double this_Likelihood_true_res = (KE_HypFit_Likelihood - true_KE) / true_KE;
+	double this_Likelihood_true_invres = (1./KE_HypFit_Likelihood - 1./true_KE) / (1./true_KE);
+	JSFillHist("Likelihood", "Likelihood_KE_true_vs_KE_fit_Res_" + N_hits_str + "_" + particle_str, true_KE, this_Likelihood_true_res, 1., 300., 0., 1500., 400., -2., 2.);
+	JSFillHist("Likelihood", "Likelihood_KE_true_vs_KE_fit_InvRes_" + N_hits_str + "_" + particle_str, true_KE, this_Likelihood_true_invres, 1., 300., 0., 1500., 400., -2., 2.);
+      }
     }
 
     this_dEdx_vec.clear();

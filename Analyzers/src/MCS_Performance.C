@@ -95,10 +95,12 @@ void MCS_Performance::Run_Beam(){
     }
   }
 
+  /*
   Run_Beam_Segments(reco_position_vec, true_start_P, this_PDG, 4., "4cm");
   Run_Beam_Segments(reco_position_vec, true_start_P, this_PDG, 5., "5cm");
   Run_Beam_Segments(reco_position_vec, true_start_P, this_PDG, 8., "8cm");
   Run_Beam_Segments(reco_position_vec, true_start_P, this_PDG, 10., "10cm"); 
+  */  
   Run_Beam_Segments(reco_position_vec, true_start_P, this_PDG, 14., "14cm");
 
   
@@ -189,10 +191,12 @@ void MCS_Performance::Run_Daughter(const vector<Daughter>& pions){
     double true_P = this_daughter.PFP_true_byHits_startP() * 1000.;
 
     if(abs(this_PdgID) == 13 || abs(this_PdgID) == 211 || abs(this_PdgID) == 2212){
+      /*
       Run_Daughter_Segments(reco_position_vec, true_P, this_PdgID, 4., "4cm");
       Run_Daughter_Segments(reco_position_vec, true_P, this_PdgID, 5., "5cm");
       Run_Daughter_Segments(reco_position_vec, true_P, this_PdgID, 8., "8cm");
       Run_Daughter_Segments(reco_position_vec, true_P, this_PdgID, 10., "10cm");
+      */
       Run_Daughter_Segments(reco_position_vec, true_P, this_PdgID, 14., "14cm");
     }
   }
@@ -236,6 +240,8 @@ void MCS_Performance::Run_Daughter_Segments(const vector<TVector3> & reco_positi
       JSFillHist("Daughter", "Daughter_MCS_Res_" + name + "_" + this_N_segments_str + "_" + this_PdgID_str, res, 1., 400., -2., 2.);
       JSFillHist("Daughter", "Daughter_MCS_InvRes_" + name + "_" + this_N_segments_str + "_" + this_PdgID_str, inv_res, 1., 400., -2., 2.);
       JSFillHist("Daughter", "Daughter_MCS_P_true_vs_P_MCS_" + name + "_" + this_N_segments_str + "_" + this_PdgID_str, true_P, P_fitted, 1., 400., 0., 2000., 400., 0., 2000.);
+      JSFillHist("Daughter", "Daughter_MCS_P_true_vs_MCS_Res_" + name + "_" + this_N_segments_str + "_" + this_PdgID_str, true_P, res, 1., 400., 0., 2000., 400., -2., 2.);
+      JSFillHist("Daughter", "Daughter_MCS_P_true_vs_MCS_InvRes_" + name + "_" + this_N_segments_str + "_" + this_PdgID_str, true_P, inv_res, 1., 400., 0., 2000., 400., -2., 2.);
     }
   }
   
@@ -311,8 +317,10 @@ vector<TH1D*> MCS_Performance::Calculate_Likelihoods_for_Performance(const vecto
       double this_HL_sigma = MCS_Get_HL_Sigma(segment_size, this_P, this_mass);
       double N_sigma_xz = theta_xz_vec.at(j) / this_HL_sigma;
       double N_sigma_yz = theta_yz_vec.at(j) / this_HL_sigma;
-      double this_xz_likelihood = MCS_Get_Likelihood(this_HL_sigma, theta_xz_vec.at(j));
-      double this_yz_likelihood = MCS_Get_Likelihood(this_HL_sigma, theta_yz_vec.at(j));
+      //double this_xz_likelihood = MCS_Get_Likelihood(this_HL_sigma, theta_xz_vec.at(j));
+      //double this_yz_likelihood = MCS_Get_Likelihood(this_HL_sigma, theta_yz_vec.at(j));
+      double this_xz_likelihood = MCS_Get_Likelihood_tail_model(this_P, this_HL_sigma, theta_xz_vec.at(j), (int) segment_size);
+      double this_yz_likelihood = MCS_Get_Likelihood_tail_model(this_P, this_HL_sigma, theta_yz_vec.at(j), (int) segment_size);
       double this_likelihood = 0.;
       if(N_sigma_xz < 3.) this_likelihood = this_likelihood + this_xz_likelihood;
       if(N_sigma_yz < 3.) this_likelihood = this_likelihood + this_yz_likelihood;
@@ -326,6 +334,30 @@ vector<TH1D*> MCS_Performance::Calculate_Likelihoods_for_Performance(const vecto
   return out;
 
 }
+
+double MCS_Performance::MCS_Get_Likelihood_tail_model(double this_P, double HL_sigma, double delta_angle, int segment_size){
+  double out = TMath::Log(HL_sigma) + 0.5 * pow(delta_angle / HL_sigma, 2.0);
+
+  double ratio_sigma = 2.9;
+  double ratio_p0 = 0.0616;
+  double ratio_p1 = 0.217;
+  double ratio_p2 = 0.00421;
+  double ratio_p3 = 252.;
+  if(segment_size == 14){
+    ratio_sigma = 2.9;
+    ratio_p0 = 0.0616;
+    ratio_p1 = 0.217;
+    ratio_p2 = 0.00421;
+    ratio_p3 = 252.;
+  }
+
+  double ratio_constant = (ratio_p0 + ratio_p1 * exp(-1. * ratio_p2 * (this_P - ratio_p3)));
+  out = 2.0 * TMath::Log(HL_sigma * (1. + ratio_constant * ratio_sigma)) - TMath::Log(ratio_constant) + 0.5 * pow(delta_angle / HL_sigma, 2.0) + 0.5 * pow(delta_angle / (ratio_sigma * HL_sigma), 2.0);
+  //cout << "[MCS_Performance::MCS_Get_Likelihood_tail_model] this_P : " << this_P << ", HL_sigma : " << HL_sigma << ", delta_angle : " << delta_angle << ", segment_size : " << segment_size << ", out : " << out << endl;
+
+  return out;
+}
+
 
 TString MCS_Performance::Get_N_segment_str(int N_segment){
   TString out = "";

@@ -149,7 +149,6 @@ std::vector<Daughter> AnalyzerCore::GetAllDaughters(){
   reco_unit_beam = (1. / reco_unit_beam.Mag() ) * reco_unit_beam;
 
   vector<Daughter> out;
-  //cout << "[PionXsec::GetAllRecoDaughters] evt.reco_daughter_allTrack_ID->size() : " << evt.reco_daughter_allTrack_ID->size() << endl;
   for (size_t i = 0; i < evt.reco_daughter_allTrack_ID->size(); i++){
     if((*evt.reco_daughter_allTrack_dQdX_SCE)[i].empty()) continue;
 
@@ -193,9 +192,9 @@ std::vector<Daughter> AnalyzerCore::GetAllDaughters(){
     this_Daughter.Set_PFP_trackScore_collection((*evt.reco_daughter_PFP_trackScore_collection).at(i));
     this_Daughter.Set_PFP_emScore_collection((*evt.reco_daughter_PFP_emScore_collection).at(i));
     this_Daughter.Set_PFP_michelScore_collection((*evt.reco_daughter_PFP_michelScore_collection).at(i));
-    this_Daughter.Set_spacePts_X((*evt.reco_daughter_spacePts_X).at(i));
-    this_Daughter.Set_spacePts_Y((*evt.reco_daughter_spacePts_Y).at(i));
-    this_Daughter.Set_spacePts_Z((*evt.reco_daughter_spacePts_Z).at(i));
+    //this_Daughter.Set_spacePts_X((*evt.reco_daughter_spacePts_X).at(i)); // == Not exist in data
+    //this_Daughter.Set_spacePts_Y((*evt.reco_daughter_spacePts_Y).at(i));
+    //this_Daughter.Set_spacePts_Z((*evt.reco_daughter_spacePts_Z).at(i));
     this_Daughter.Set_allTrack_ID((*evt.reco_daughter_allTrack_ID).at(i));
     this_Daughter.Set_allTrack_EField_SCE((*evt.reco_daughter_allTrack_EField_SCE).at(i));
     this_Daughter.Set_allTrack_calo_X((*evt.reco_daughter_allTrack_calo_X).at(i));
@@ -521,7 +520,7 @@ void AnalyzerCore::Init(){
 
   // == Additional Root files
   TString datapath = getenv("DATA_DIR");
-  TString datapath_xrootd = "xroot://fndca1.fnal.gov:1094/pnfs/fnal.gov/usr/dune/persistent/users/sungbino/PDSP_data/";
+  TString datapath_xrootd = "xroot://fndca1.fnal.gov:1094/pnfs/fnal.gov/usr/dune/scratch/users/sungbino/PDSP_data/";
   TFile *file_profile = TFile::Open(datapath_xrootd + "/dEdx_profiles/dEdxrestemplates.root");
   map_profile[13] = (TProfile *)file_profile -> Get("dedx_range_mu");
   map_profile[211] = (TProfile *)file_profile -> Get("dedx_range_pi");
@@ -898,7 +897,7 @@ double AnalyzerCore::Fit_HypTrkLength_Likelihood(const vector<double> & dEdx, co
   if(this_is_beam) original_res_length = ResRange.at(0); // == [cm]
   double best_total_res_length = best_additional_res_length + original_res_length; // == [cm]
 
-  cout << "this_N_hits : " << this_N_hits << ", original_res_length : " << original_res_length << ", best_additional_res_length : " << best_additional_res_length << ", best_total_res_length : " << best_total_res_length << endl;
+  //cout << "this_N_hits : " << this_N_hits << ", original_res_length : " << original_res_length << ", best_additional_res_length : " << best_additional_res_length << ", best_total_res_length : " << best_total_res_length << endl;
 
   // == Define fitting failed cases
   if(i_bestfit == res_length_trial - 1){

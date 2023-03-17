@@ -16,7 +16,7 @@ void GEANT4_XS::ReadHistograms(){
 
   //==== Xsec
   TString Xsec_path = datapath+"/GEANT4_XS/";
-  TString Xsec_path_xrootd = "xroot://fndca1.fnal.gov:1094/pnfs/fnal.gov/usr/dune/persistent/users/sungbino/PDSP_data/GEANT4_XS/";
+  TString Xsec_path_xrootd = "xroot://fndca1.fnal.gov:1094/pnfs/fnal.gov/usr/dune/scratch/users/sungbino/PDSP_data/GEANT4_XS/";
   //cout << "[GEANT4_XS::ReadHistograms] Xsec_path  : " << Xsec_path << endl;
   string elline;
   ifstream in(Xsec_path+"histmap.txt");

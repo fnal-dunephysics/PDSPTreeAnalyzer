@@ -191,10 +191,10 @@ echo "@@ ls"
 ls
 
 echo "@@ ls tar"
-ls -lhs tar
-ls -lhs tar/lib
-ls -lhs tar/include
-ls -lhs tar/data/v1/Momentum_reweight
+ls -lhs ${{INPUT_TAR_DIR_LOCAL}}/tar
+ls -lhs ${{INPUT_TAR_DIR_LOCAL}}/tar/lib
+ls -lhs ${{INPUT_TAR_DIR_LOCAL}}/tar/include/
+ls -lhs ${{INPUT_TAR_DIR_LOCAL}}/tar/data/v1/Momentum_reweight
 
 
 nProcess=$PROCESS
@@ -205,20 +205,21 @@ source /cvmfs/dune.opensciencegrid.org/products/dune/setup_dune.sh
 setup root v6_22_08d -q e20:p392:prof
 
 #### setup directories
-export ROOT_INCLUDE_PATH=${{gridBaseDir}}/tar:$ROOT_INCLUDE_PATH
+export ROOT_INCLUDE_PATH=${{INPUT_TAR_DIR_LOCAL}}/tar:$ROOT_INCLUDE_PATH
 echo ${{ROOT_INCLUDE_PATH}}
 
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${{gridBaseDir}}/tar/lib/
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${{INPUT_TAR_DIR_LOCAL}}/tar/lib/
 echo ${{LD_LIBRARY_PATH}}
 
 export PDSPAnaV="v1"
-export DATA_DIR=${{gridBaseDir}}/tar/data/${{PDSPAnaV}}
+export DATA_DIR=${{INPUT_TAR_DIR_LOCAL}}/tar/data/${{PDSPAnaV}}
 
 setup ifdhc
+export IFDH_CP_MAXRETRIES=2
 
 echo "@@ Env setup finished"
 
-root -l -b -q ./tar/run_{1}.C
+root -l -b -q ${{INPUT_TAR_DIR_LOCAL}}/tar/run_{1}.C
 
 echo "@@ Finished!!"
 ls -alg ${{thisOutputCreationDir}}/
@@ -289,7 +290,7 @@ void {1}(){{
     if not args.no_exec:
       for i in range(N_jobs):
         commandsfilename = args.Analyzer+'_'+args.Momentum+'_'+InputSample+'_'+str(i)
-        job_submit = '''jobsub_submit -G dune --role=Analysis --resource-provides=\"usage_model=DEDICATED,OPPORTUNISTIC\" -l \'+SingularityImage=\\\"/cvmfs/singularity.opensciencegrid.org/fermilab/fnal-wn-sl7:latest\\\"\' --append_condor_requirements=\'(TARGET.HAS_SINGULARITY=?=true)\' --tar_file_name \"dropbox:///{0}/PDSPAna_build.tar\" --email-to sungbin.oh555@gmail.com -N 1 --expected-lifetime 8h --memory 6GB "file://{0}/{1}.sh\"'''.format(base_rundir, commandsfilename)
+        job_submit = '''jobsub_submit -G dune --role=Analysis --resource-provides=\"usage_model=DEDICATED,OPPORTUNISTIC\" -l \'+SingularityImage=\\\"/cvmfs/singularity.opensciencegrid.org/fermilab/fnal-wn-sl7:latest\\\"\' --append_condor_requirements=\'(TARGET.HAS_SINGULARITY=?=true)\' --tar_file_name "dropbox:///{0}/PDSPAna_build.tar\" --email-to sungbin.oh555@gmail.com -N 1 --expected-lifetime 8h --memory 6GB "file://{0}/{1}.sh\"'''.format(base_rundir, commandsfilename)
 
 
         os.system(job_submit)
