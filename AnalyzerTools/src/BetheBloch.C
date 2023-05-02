@@ -99,13 +99,9 @@ double BetheBloch::Get_Wmax(double KE){
 
 double BetheBloch::meandEdx(double KE){
 
-  //KE is kinetic energy in MeV
   double gamma = (KE + mass) / mass;
   double beta = sqrt( 1 - 1/pow(gamma,2));
-  
   double wmax = Get_Wmax(KE);
-
-  //cout<<wmax<<" "<<rho*K*Z*pow(charge,2)<<" "<<A*pow(beta,2)<<" "<<0.5*log(2*me*pow(gamma,2)*pow(beta,2)*wmax/pow(I,2))<<" "<<pow(beta,2)<<" "<<densityEffect( beta, gamma )/2<<endl;
   double dEdX = (rho*K*Z*pow(charge,2))/(A*pow(beta,2))*(0.5*log(2*me*pow(gamma,2)*pow(beta,2)*wmax/pow(I,2)) - pow(beta,2) - densityEffect( beta, gamma )/2 );
 
   return dEdX;

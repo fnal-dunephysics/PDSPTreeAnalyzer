@@ -383,7 +383,7 @@ bool AnalyzerCore::Pass_Beam_PID(int PID){
     PDGID_candiate_vec.push_back(2212);
   }
 
-  if(PID == 211 || PID == 13){
+  if(PID == 211 || abs(PID) == 13){
     PDGID_candiate_vec.push_back(211);
     PDGID_candiate_vec.push_back(13);
     PDGID_candiate_vec.push_back(-13);
@@ -572,8 +572,8 @@ void AnalyzerCore::Init_evt(){
     }
 
     chi2_proton = evt.reco_beam_Chi2_proton/evt.reco_beam_Chi2_ndof;
-    chi2_pion = Particle_chi2( (*evt.reco_beam_calibrated_dEdX_SCE), (*evt.reco_beam_resRange_SCE), true, 211);
-    chi2_muon = Particle_chi2( (*evt.reco_beam_calibrated_dEdX_SCE), (*evt.reco_beam_resRange_SCE), true, 13);
+    chi2_pion = Particle_chi2( (*evt.reco_beam_calibrated_dEdX_SCE), (*evt.reco_beam_resRange_SCE), 211, 1.);
+    chi2_muon = Particle_chi2( (*evt.reco_beam_calibrated_dEdX_SCE), (*evt.reco_beam_resRange_SCE), 13, 1.);
   }
 }
 
