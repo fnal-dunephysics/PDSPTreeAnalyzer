@@ -268,7 +268,10 @@ void PionKEScale::FitWithVectors(const vector<double>& dEdx, const vector<double
     vector<double> this_range_vec;
     this_N_hits = 0;
     for(int i_hit = skip_N_hits; i_hit < total_N_hits; i_hit++){
-      this_dEdx_vec.push_back(dEdx.at(i_hit));
+      double this_dEdx = dEdx.at(i_hit);
+      if(!IsData) this_dEdx = MCCorr->dEdx_scaled(this_dEdx);
+
+      this_dEdx_vec.push_back(this_dEdx);
       this_range_vec.push_back(range.at(i_hit) - range.at(skip_N_hits));
       this_N_hits++;
     }

@@ -80,3 +80,18 @@ double MCCorrection::MomentumReweight_SF(TString flag, double P_beam_inst, int s
   return value+double(sys)*error;
 
 }
+
+double MCCorrection::dEdx_scaled(double MC_dEdx){
+  double f_const_p0 = 0.997;
+  double f_pol1_p0 = 0.945;
+  double f_pol1_p1 = 0.021;
+
+  double scale = 1.;
+  if(MC_dEdx < 2.44) scale = f_const_p0;
+  else scale = f_pol1_p0 + MC_dEdx * f_pol1_p1;
+
+  if(scale > 1.2) scale = 1.2;
+
+  //cout << "[dEdx_res::dEdx_scaled] scale : " << scale << endl; 
+  return scale * MC_dEdx;
+}

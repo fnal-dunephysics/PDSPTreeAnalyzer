@@ -38,6 +38,8 @@ public:
   double MomentumReweight_SF(TString flag, double P_beam_inst, int sys);
   std::map< TString, TH1D* > map_hist_MomentumReweight;
 
+  double dEdx_scaled(double MC_dEdx);
+
 };
 
 #endif
