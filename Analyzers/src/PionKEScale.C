@@ -244,14 +244,14 @@ void PionKEScale::Run_Daughter_HypFit(const vector<Daughter>& pions){
 	JSFillHist("Daughter_pion", "Daughter_pion_true_start_KE_vs_KE_BB_Res_chi2_pion_cut_" + particle_str, true_KE, this_range_res, 1., 400., 0., 2000., 400., -2., 2.);
         JSFillHist("Daughter_pion", "Daughter_pion_true_start_KE_vs_KE_BB_InvRes_chi2_pion_cut_" + particle_str, true_KE, this_ragne_invres, 1., 400., 0., 2000., 400., -2., 2.);
       }
-      FitWithVectors(this_daughter.allTrack_calibrated_dEdX_SCE(), this_daughter.allTrack_resRange_SCE(), particle_str, true_KE);
+      FitWithVectors(this_daughter.allTrack_calibrated_dEdX_SCE(), this_daughter.allTrack_resRange_SCE(), this_daughter.allTrack_EField_SCE(), particle_str, true_KE);
     }
   }
 
   return;
 }
 
-void PionKEScale::FitWithVectors(const vector<double>& dEdx, const vector<double>& range, TString particle_str, double true_KE){
+void PionKEScale::FitWithVectors(const vector<double>& dEdx, const vector<double>& range, const vector<double>& E_field, TString particle_str, double true_KE){
 
   int total_N_hits = dEdx.size();
   if(total_N_hits < 11) return;
@@ -269,7 +269,8 @@ void PionKEScale::FitWithVectors(const vector<double>& dEdx, const vector<double
     this_N_hits = 0;
     for(int i_hit = skip_N_hits; i_hit < total_N_hits; i_hit++){
       double this_dEdx = dEdx.at(i_hit);
-      if(!IsData) this_dEdx = MCCorr->dEdx_scaled(this_dEdx);
+      //if(!IsData) this_dEdx = MCCorr->dEdx_scaled(this_dEdx);
+      if(IsData) this_dEdx = MCCorr->Use_Abbey_Recom_Params(this_dEdx, E_field.at(i_hit), 0.953);
 
       this_dEdx_vec.push_back(this_dEdx);
       this_range_vec.push_back(range.at(i_hit) - range.at(skip_N_hits));

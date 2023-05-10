@@ -95,3 +95,20 @@ double MCCorrection::dEdx_scaled(double MC_dEdx){
   //cout << "[dEdx_res::dEdx_scaled] scale : " << scale << endl; 
   return scale * MC_dEdx;
 }
+
+double MCCorrection::Use_Abbey_Recom_Params(double dEdx, double Efield, double calib_const_ratio){
+
+  double alpha_default = 0.93;
+  double beta_default = 0.212;
+  double rho = 1.396;
+
+  double alpha_Abbey = 0.905;
+  double beta_Abbey = 0.220;
+
+  double exp_term = exp( calib_const_ratio * (beta_Abbey / beta_default) * log(alpha_default + beta_default * dEdx / (rho * Efield)) );
+  double new_dEdx = (exp_term - alpha_Abbey) * rho * Efield / beta_Abbey;
+
+  cout << "[MCCorrection::Use_Abbey_Recom_Params] dEdx : " << dEdx << ", new_dEdx : " << new_dEdx << endl;
+
+  return new_dEdx;
+}

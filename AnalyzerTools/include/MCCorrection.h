@@ -39,6 +39,7 @@ public:
   std::map< TString, TH1D* > map_hist_MomentumReweight;
 
   double dEdx_scaled(double MC_dEdx);
+  double Use_Abbey_Recom_Params(double dEdx, double Efield, double calib_const_ratio);
 
 };
 
