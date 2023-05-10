@@ -48,6 +48,19 @@ void MCCorrection::ReadHistograms(){
     cout << "[MCCorrection::ReadHistograms] key = " << it -> first << endl;
   }
 
+  TString SCE_map_path_xrootd = "xroot://fndca1.fnal.gov:1094/pnfs/fnal.gov/usr/dune/scratch/users/sungbino/PDSP_data/SCE/SCE_DataDriven_180kV_v4.root";
+  cout << "[MCCorrection::ReadHistograms] SCE_map_path_xrootd : " << SCE_map_path_xrootd << endl;
+  TFile *sce_file = TFile::Open(SCE_map_path_xrootd);
+  xneg = (TH3F*)sce_file->Get("Reco_ElecField_X_Neg");
+  yneg = (TH3F*)sce_file->Get("Reco_ElecField_Y_Neg");
+  zneg = (TH3F*)sce_file->Get("Reco_ElecField_Z_Neg");
+  xpos = (TH3F*)sce_file->Get("Reco_ElecField_X_Pos");
+  ypos = (TH3F*)sce_file->Get("Reco_ElecField_Y_Pos");
+  zpos = (TH3F*)sce_file->Get("Reco_ElecField_Z_Pos");
+
+  pos_hists = {xpos, ypos, zpos};
+  neg_hists = {xneg, yneg, zneg};
+
   cout << "[MCCorrection::ReadHistograms] END" << endl;
 }
 
@@ -79,4 +92,51 @@ double MCCorrection::MomentumReweight_SF(TString flag, double P_beam_inst, int s
 
   return value+double(sys)*error;
 
+}
+
+double MCCorrection::SCE_Corrected_E(double x, double y, double z){
+  double E0value=0.4867;
+  if (sce=="on"){
+    if(x>=0){
+      for (auto h : pos_hists) {
+        if (h->GetXaxis()->FindBin(x) < 1 ||
+            h->GetXaxis()->FindBin(x) > h->GetNbinsX()) {
+	  std::cout << "x oob: " << x << std::endl;
+        }
+        if (h->GetYaxis()->FindBin(y) < 1 ||
+            h->GetYaxis()->FindBin(y) > h->GetNbinsY()) {
+	  std::cout << "y oob: " << y << std::endl;
+        }
+        if (h->GetZaxis()->FindBin(z) < 1 ||
+            h->GetZaxis()->FindBin(z) > h->GetNbinsZ()) {
+	  std::cout << "z oob: " << z << std::endl;
+        }
+      }
+      float ex=E0value+E0value*xpos->Interpolate(x,y,z);
+      float ey=E0value*ypos->Interpolate(x,y,z);
+      float ez=E0value*zpos->Interpolate(x,y,z);
+      return sqrt(ex*ex+ey*ey+ez*ez);
+    }
+    if(x<0){
+      for (auto h : neg_hists) {
+        if (h->GetXaxis()->FindBin(x) < 1 ||
+            h->GetXaxis()->FindBin(x) > h->GetNbinsX()) {
+	  std::cout << "x oob: " << x << std::endl;
+        }
+        if (h->GetYaxis()->FindBin(y) < 1 ||
+            h->GetYaxis()->FindBin(y) > h->GetNbinsY()) {
+	  std::cout << "y oob: " << y << std::endl;
+	}
+        if (h->GetZaxis()->FindBin(z) < 1 ||
+            h->GetZaxis()->FindBin(z) > h->GetNbinsZ()) {
+	  std::cout << "z oob: " << z << std::endl;
+	}
+      }
+      float ex=E0value+E0value*xneg->Interpolate(x,y,z);
+      float ey=E0value*yneg->Interpolate(x,y,z);
+      float ez=E0value*zneg->Interpolate(x,y,z);
+      return sqrt(ex*ex+ey*ey+ez*ez);
+    }
+  }
+  return E0value;
 }

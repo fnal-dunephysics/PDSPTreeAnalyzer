@@ -14,6 +14,8 @@ class dEdx_res : public AnalyzerCore {
   double dEdx_scaled(int PID, double MC_dEdx);
   double dEdx_smeared(int PID, double MC_dEdx);
 
+  double Use_Abbey_Recom_Params(double dEdx, double Efield, double calib_const);
+
   dEdx_res();
   ~dEdx_res();
 
