@@ -108,7 +108,7 @@ double MCCorrection::Use_Abbey_Recom_Params(double dEdx, double Efield, double c
   double exp_term = exp( calib_const_ratio * (beta_Abbey / beta_default) * log(alpha_default + beta_default * dEdx / (rho * Efield)) );
   double new_dEdx = (exp_term - alpha_Abbey) * rho * Efield / beta_Abbey;
 
-  cout << "[MCCorrection::Use_Abbey_Recom_Params] dEdx : " << dEdx << ", new_dEdx : " << new_dEdx << endl;
+  //cout << "[MCCorrection::Use_Abbey_Recom_Params] dEdx : " << dEdx << ", new_dEdx : " << new_dEdx << endl;
 
   return new_dEdx;
 }
