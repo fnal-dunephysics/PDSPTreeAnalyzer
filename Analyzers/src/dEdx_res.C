@@ -74,6 +74,7 @@ void dEdx_res::Run_Beam(int PID){
   double this_chi2_muon = Particle_chi2( (*evt.reco_beam_calibrated_dEdX_SCE), (*evt.reco_beam_resRange_SCE), 13, 1.);
   double this_chi2_pion = Particle_chi2( (*evt.reco_beam_calibrated_dEdX_SCE), (*evt.reco_beam_resRange_SCE), 211, 1.);
   double this_chi2_proton = Particle_chi2( (*evt.reco_beam_calibrated_dEdX_SCE), (*evt.reco_beam_resRange_SCE), 2212, 1.);
+
   vector<double> corrected_dEdx_vec;
   for(unsigned int i = 0; i < (*evt.reco_beam_calibrated_dEdX_SCE).size(); i++){
     double this_dEdx = (*evt.reco_beam_calibrated_dEdX_SCE).at(i);
@@ -83,6 +84,18 @@ void dEdx_res::Run_Beam(int PID){
   double this_chi2_muon_dEdx_corr = Particle_chi2(corrected_dEdx_vec, (*evt.reco_beam_resRange_SCE), 13, 1.);
   double this_chi2_pion_dEdx_corr = Particle_chi2(corrected_dEdx_vec, (*evt.reco_beam_resRange_SCE), 211, 1.);
   double this_chi2_proton_dEdx_corr = Particle_chi2(corrected_dEdx_vec, (*evt.reco_beam_resRange_SCE), 2212, 1.);
+
+  vector<double> Abbey_recom_dEdx_vec;
+  for(unsigned int i = 0; i < (*evt.reco_beam_calibrated_dEdX_SCE).size(); i++){
+    double cal_Efield = MCCorr -> SCE_Corrected_E((*evt.reco_beam_calo_X_allTrack).at(i), (*evt.reco_beam_calo_Y_allTrack).at(i), (*evt.reco_beam_calo_Z_allTrack).at(i));
+    double this_dEdx = (*evt.reco_beam_calibrated_dEdX_SCE).at(i);
+    if(IsData) this_dEdx = Use_Abbey_Recom_Params(this_dEdx, cal_Efield, 0.9488);
+    Abbey_recom_dEdx_vec.push_back(this_dEdx);
+  }
+  double this_chi2_muon_Abbey = Particle_chi2(Abbey_recom_dEdx_vec, (*evt.reco_beam_resRange_SCE), 13, 1.);
+  double this_chi2_pion_Abbey = Particle_chi2(Abbey_recom_dEdx_vec, (*evt.reco_beam_resRange_SCE), 211, 1.);
+  double this_chi2_proton_Abbey = Particle_chi2(Abbey_recom_dEdx_vec, (*evt.reco_beam_resRange_SCE), 2212, 1.);
+
 
   JSFillHist(beam_particle, "Chi2_muon", this_chi2_muon, 1., 1000., 0., 1000.);
   JSFillHist(beam_particle, "Chi2_pion", this_chi2_pion, 1., 1000., 0., 1000.);
@@ -105,7 +118,9 @@ void dEdx_res::Run_Beam(int PID){
     }
 
     if(IsData){
-      Abbey_dEdx = Use_Abbey_Recom_Params(Abbey_dEdx, (*evt.reco_beam_EField_SCE).at(i), 0.953);
+      double cal_Efield = MCCorr -> SCE_Corrected_E((*evt.reco_beam_calo_X_allTrack).at(i), (*evt.reco_beam_calo_Y_allTrack).at(i), (*evt.reco_beam_calo_Z_allTrack).at(i));
+      //Abbey_dEdx = Use_Abbey_Recom_Params(Abbey_dEdx, (*evt.reco_beam_EField_SCE).at(i), 0.9488);
+      Abbey_dEdx = Use_Abbey_Recom_Params(Abbey_dEdx, cal_Efield, 0.9488);
     }
 
     JSFillHist(beam_particle, "ResRange_vs_dEdx_corr", (*evt.reco_beam_resRange_SCE).at(i), corr_dEdx, 1., 200., 0., 200., 1000., 0., 50.);
@@ -181,6 +196,7 @@ double dEdx_res::Use_Abbey_Recom_Params(double dEdx, double Efield, double calib
 
   double alpha_default = 0.93;
   double beta_default = 0.212;
+  //double rho = 1.396;
   double rho = 1.39;
 
   double alpha_Abbey = 0.905;
