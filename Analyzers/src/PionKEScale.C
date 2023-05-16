@@ -270,7 +270,7 @@ void PionKEScale::FitWithVectors(const vector<double>& dEdx, const vector<double
     for(int i_hit = skip_N_hits; i_hit < total_N_hits; i_hit++){
       double this_dEdx = dEdx.at(i_hit);
       //if(!IsData) this_dEdx = MCCorr->dEdx_scaled(this_dEdx);
-      if(IsData) this_dEdx = MCCorr->Use_Abbey_Recom_Params(this_dEdx, E_field.at(i_hit), 0.953);
+      if(IsData) this_dEdx = MCCorr->Use_Abbey_Recom_Params(this_dEdx, E_field.at(i_hit), 0.9488);
 
       this_dEdx_vec.push_back(this_dEdx);
       this_range_vec.push_back(range.at(i_hit) - range.at(skip_N_hits));

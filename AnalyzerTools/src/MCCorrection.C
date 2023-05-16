@@ -100,7 +100,7 @@ double MCCorrection::Use_Abbey_Recom_Params(double dEdx, double Efield, double c
 
   double alpha_default = 0.93;
   double beta_default = 0.212;
-  double rho = 1.396;
+  double rho = 1.39;
 
   double alpha_Abbey = 0.905;
   double beta_Abbey = 0.220;
