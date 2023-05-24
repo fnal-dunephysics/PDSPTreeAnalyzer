@@ -165,6 +165,7 @@ public:
   //==================
   double Convert_P_Spectrometer_to_P_ff(double P_beam_inst, TString particle, TString key, int syst);
   double Particle_chi2(const vector<double> & dEdx, const vector<double> & ResRange, int PID, double dEdx_res_frac = 1.);
+  double Particle_chi2_skip(const vector<double> & dEdx, const vector<double> & ResRange, int PID, double dEdx_res_frac);
   double max_additional_res_length_pion = 450.; // == [cm] 
   double max_additional_res_length_proton = 120.; // == [cm]
   double res_length_step_pion = 1.0; // == [cm]

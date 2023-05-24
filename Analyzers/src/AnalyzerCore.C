@@ -664,6 +664,54 @@ double AnalyzerCore::Particle_chi2(const vector<double> & dEdx, const vector<dou
   return this_chi2 / npt;
 }
 
+double AnalyzerCore::Particle_chi2_skip(const vector<double> & dEdx, const vector<double> & ResRange, int PID, double dEdx_res_frac){
+
+  //cout << "[AnalyzerCore::Particle_chi2] Start" << endl;                                                                                                                                                                                     
+  if(PID != 2212 && PID != 13 && PID != 211){
+    return 99999.;
+  }
+  int N_skip = 4;
+
+  if( dEdx.size() < N_skip + 1 || ResRange.size() < N_skip + 1 ) return 88888.;
+
+  int N_max_hits = 1000;
+  int this_N_calo = dEdx.size();
+  int this_N_hits = min(N_max_hits, this_N_calo);
+  double dEdx_truncate_upper = 1000.;
+  double dEdx_truncate_bellow = 0.;
+  double this_chi2 = 0.;
+  int npt = 0;
+  for(int j = N_skip; j < this_N_hits - N_skip; j++){
+
+    double dEdx_measured = dEdx.at(j);
+    if(dEdx_measured < dEdx_truncate_bellow || dEdx_measured > dEdx_truncate_upper) continue;
+
+    double this_res_length = ResRange.at(j);
+    int bin = map_profile[PID] -> FindBin( this_res_length );
+    if( bin >= 1 && bin <= map_profile[PID]->GetNbinsX() ){
+      double template_dedx = map_profile[PID]->GetBinContent( bin );
+      if( template_dedx < 1.e-6 ){
+        template_dedx = ( map_profile[PID]->GetBinContent( bin - 1 ) + map_profile[PID]->GetBinContent( bin + 1 ) ) / 2.;
+      }
+
+      double template_dedx_err = map_profile[PID]->GetBinError( bin );
+      if( template_dedx_err < 1.e-6 ){
+        template_dedx_err = ( map_profile[PID]->GetBinError( bin - 1 ) + map_profile[PID]->GetBinError( bin + 1 ) ) / 2.;
+      }
+
+      double dedx_res = 0.04231 + 0.0001783 * dEdx_measured * dEdx_measured;
+      dedx_res *= dEdx_measured * dEdx_res_frac;
+
+      this_chi2 += ( pow( (dEdx_measured - template_dedx), 2 ) / ( pow(template_dedx_err, 2) + pow(dedx_res, 2) ) );
+
+      ++npt;
+    }
+  }
+  if(npt == 0) return 77777.;
+
+  return this_chi2 / npt;
+}
+
 double AnalyzerCore::Fit_HypTrkLength_Gaussian(const vector<double> & dEdx, const vector<double> & ResRange, int PID, bool save_graph, bool this_is_beam){
 
   //cout << "[HadAna::Fit_dEdx_Residual_Length] Start" << endl;
