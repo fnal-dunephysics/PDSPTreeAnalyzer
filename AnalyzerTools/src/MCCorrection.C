@@ -16,9 +16,11 @@ void MCCorrection::ReadHistograms(){
 
   //==== Momentum reweight
   TString MomentumReweight_path = datapath + "/Momentum_reweight/";
-  TString MomentumReweight_path_xrootd = "xroot://fndca1.fnal.gov:1094/pnfs/fnal.gov/usr/dune/scratch/users/sungbino/PDSP_data/Momentum_reweight/"; 
+  //TString MomentumReweight_path_xrootd = "xroot://fndca1.fnal.gov:1094/pnfs/fnal.gov/usr/dune/scratch/users/sungbino/PDSP_data/Momentum_reweight/"; 
+  TString MomentumReweight_path_xrootd = "xroot://fndca1.fnal.gov:1094/pnfs/fnal.gov/usr/dune/persistent/users/sungbino/PDSP_data/Momentum_reweight/";
   cout << "[MCCorrection::ReadHistograms] MomentumReweight_path  : " << MomentumReweight_path << endl;
   string elline;
+  cout << "[MCCorrection::ReadHistograms] Open : " << MomentumReweight_path + "histmap.txt" << endl;
   ifstream in(MomentumReweight_path + "histmap.txt");
   while(getline(in,elline)){
     std::istringstream is( elline );
