@@ -115,8 +115,8 @@ double MCCorrection::Use_Abbey_Recom_Params(double dEdx, double Efield, double c
   double beta_default = 0.212;
   double rho = 1.39;
 
-  double alpha_Abbey = 0.905;
-  double beta_Abbey = 0.220;
+  double alpha_Abbey = 0.95;
+  double beta_Abbey = 0.212;
 
   double exp_term = exp( calib_const_ratio * (beta_Abbey / beta_default) * log(alpha_default + beta_default * dEdx / (rho * Efield)) );
   double new_dEdx = (exp_term - alpha_Abbey) * rho * Efield / beta_Abbey;
@@ -124,6 +124,7 @@ double MCCorrection::Use_Abbey_Recom_Params(double dEdx, double Efield, double c
   //cout << "[MCCorrection::Use_Abbey_Recom_Params] dEdx : " << dEdx << ", new_dEdx : " << new_dEdx << endl;
 
   return new_dEdx;
+}
 
 double MCCorrection::SCE_Corrected_E(double x, double y, double z){
   double E0value=0.4867;
@@ -170,5 +171,4 @@ double MCCorrection::SCE_Corrected_E(double x, double y, double z){
     }
   }
   return E0value;
->>>>>>> dEdx_res
 }

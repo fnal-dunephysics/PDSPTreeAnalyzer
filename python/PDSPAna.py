@@ -155,29 +155,17 @@ for InputSample in InputSamples:
     Total_entries = int(this_split[1][0:-1])
     print(Total_entries)
     
-
-
-  ## Loop for number of jobs
-  N_jobs = args.NJobs
-  for i in range(N_jobs):
-    loop_start = int(i * (Total_entries / N_jobs))
-    loop_end = min(int((i+1) * (Total_entries /N_jobs)), Total_entries)
-    print('Run ' + str(i) + 'for ' + str(loop_start) + ' to ' + str(loop_end))
-
-    ## Write run script
-
-    if IsDUNEgpvm:
-      commandsfilename = args.Analyzer+'_'+args.Momentum+'_'+InputSample
-      outname = commandsfilename + args.Suffix + '_' + str(i) + '.root'
-      #outname = commandsfilename + '_test.root'
-      run_commands = open(base_rundir+'/'+commandsfilename+'_'+str(i)+'.sh','w')
-      run_commands.write('''#!/bin/bash
+  ## Write run script
+  if IsDUNEgpvm:
+    commandsfilename = args.Analyzer+'_'+args.Momentum+'_'+InputSample
+    outname = commandsfilename + args.Suffix
+    run_commands = open(base_rundir+'/'+commandsfilename+'.sh','w')
+    run_commands.write('''#!/bin/bash
 # Setup grid submission
-
 outDir=$1
 echo "@@ outDir : ${{outDir}}"
 
-outDir={2}
+outDir={1}
 
 echo "@@ pwd"
 pwd
@@ -219,19 +207,33 @@ export IFDH_CP_MAXRETRIES=2
 
 echo "@@ Env setup finished"
 
-root -l -b -q ${{INPUT_TAR_DIR_LOCAL}}/tar/run_{1}.C
+root -l -b -q ${{INPUT_TAR_DIR_LOCAL}}/tar/run_${{nProcess}}.C
 
 echo "@@ Finished!!"
 ls -alg ${{thisOutputCreationDir}}/
 
-echo "ifdh cp "${{thisOutputCreationDir}}/{0} ${{outDir}}/{0}
-ifdh rm ${{outDir}}/{0}
-ifdh cp ${{thisOutputCreationDir}}/{0} ${{outDir}}/{0}
+echo "ifdh cp "${{thisOutputCreationDir}}/{0}_${{nProcess}}.root ${{outDir}}/{0}_${{nProcess}}.root
+ifdh rm ${{outDir}}/{0}_${{nProcess}}.root
+ifdh cp ${{thisOutputCreationDir}}/{0}_${{nProcess}}.root ${{outDir}}/{0}_${{nProcess}}.root
 echo "@@ Done!"
 
-      '''.format(outname, str(i),PDSPAnaGridOutDir))
-      run_commands.close()
+      '''.format(outname, PDSPAnaGridOutDir))
+    run_commands.close()
 
+
+  ## Loop for number of jobs
+  N_jobs = args.NJobs
+  for i in range(N_jobs):
+    loop_start = int(i * (Total_entries / N_jobs))
+    loop_end = min(int((i+1) * (Total_entries /N_jobs)), Total_entries)
+    print('Run ' + str(i) + 'for ' + str(loop_start) + ' to ' + str(loop_end))
+
+    ## Write run script
+
+    if IsDUNEgpvm:
+      commandsfilename = args.Analyzer+'_'+args.Momentum+'_'+InputSample
+      outname = commandsfilename + args.Suffix + '_' + str(i) + '.root'
+      #outname = commandsfilename + '_test.root'
       thisjob_dir = base_rundir
 
       runCfileFullPath = ""
@@ -288,13 +290,11 @@ void {1}(){{
 
 
     if not args.no_exec:
-      for i in range(N_jobs):
-        commandsfilename = args.Analyzer+'_'+args.Momentum+'_'+InputSample+'_'+str(i)
-        job_submit = '''jobsub_submit -G dune --role=Analysis --resource-provides=\"usage_model=DEDICATED,OPPORTUNISTIC\" -l \'+SingularityImage=\\\"/cvmfs/singularity.opensciencegrid.org/fermilab/fnal-wn-sl7:latest\\\"\' --append_condor_requirements=\'(TARGET.HAS_SINGULARITY=?=true)\' --tar_file_name "dropbox:///{0}/PDSPAna_build.tar\" --email-to sungbin.oh555@gmail.com -N 1 --expected-lifetime 8h --memory 6GB "file://{0}/{1}.sh\"'''.format(base_rundir, commandsfilename)
+      commandsfilename = args.Analyzer+'_'+args.Momentum+'_'+InputSample
+      job_submit = '''jobsub_submit -G dune --role=Analysis --resource-provides=\"usage_model=DEDICATED,OPPORTUNISTIC\" -l \'+SingularityImage=\\\"/cvmfs/singularity.opensciencegrid.org/fermilab/fnal-wn-sl7:latest\\\"\' --append_condor_requirements=\'(TARGET.HAS_SINGULARITY=?=true)\' --tar_file_name "dropbox:///{0}/PDSPAna_build.tar\" --email-to sungbin.oh555@gmail.com -N {2} --expected-lifetime 8h --memory 6GB "file://{0}/{1}.sh\"'''.format(base_rundir, commandsfilename, str(N_jobs))
 
-
-        os.system(job_submit)
-        print(job_submit)
+      os.system(job_submit)
+      print(job_submit)
     os.chdir(cwd)
 
 if args.no_exec:
