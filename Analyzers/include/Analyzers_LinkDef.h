@@ -11,5 +11,7 @@
 #pragma link C++ class MCS_Angle_Shapes+;
 #pragma link C++ class MCS_Performance+;
 #pragma link C++ class PionQE+;
+#pragma link C++ class dEdx_res+;
+#pragma link C++ class Fit_Modified_Box+;
 
 #endif

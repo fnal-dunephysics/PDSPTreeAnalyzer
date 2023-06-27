@@ -12,6 +12,7 @@
 #include "TRegexp.h"
 #include "TH1D.h"
 #include "TH2D.h"
+#include "TH3F.h"
 #include "TGraph.h"
 #include "TGraphAsymmErrors.h"
 
@@ -40,6 +41,15 @@ public:
 
   double dEdx_scaled(double MC_dEdx);
   double Use_Abbey_Recom_Params(double dEdx, double Efield, double calib_const_ratio);
+  TString sce = "on";
+  TH3F *xneg;
+  TH3F *yneg;
+  TH3F *zneg;
+  TH3F *xpos;
+  TH3F *ypos;
+  TH3F *zpos;
+  std::vector<TH3F*> pos_hists, neg_hists;
+  double SCE_Corrected_E(double x, double y, double z);
 
 };
 

@@ -10,6 +10,7 @@ void PionKEScale::initializeAnalyzer(){
 
 void PionKEScale::executeEvent(){
 
+  if(!Pass_Beam_PID(211)) return;
   if(!PassBeamScraperCut()) return;
   if(!PassBeamMomentumWindowCut()) return;
   if(!PassPandoraSliceCut()) return;
@@ -18,6 +19,9 @@ void PionKEScale::executeEvent(){
   if(!PassMichelScoreCut()) return;
   if(!PassBeamCosCut()) return;
   if(!PassBeamStartZCut()) return;
+
+  
+
   if(!PassProtonVetoCut()) return;
   if(!PassMuonVetoCut()) return;
   if(!PassStoppedPionVetoCut()) return;
