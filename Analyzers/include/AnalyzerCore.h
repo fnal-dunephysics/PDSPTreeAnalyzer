@@ -6,10 +6,14 @@
 #include "TMath.h"
 #include "TH3.h"
 #include "TH2D.h"
+#include "TH1.h"
+#include "TF1.h"
+#include "TGraphErrors.h"
 #include <sstream>
 #include "TRandom.h"
 #include "TProfile.h"
 #include "TRandom3.h"
+#include "TFitResult.h"
 
 #include "PDSPTree.h"
 #include "Event.h"
@@ -191,7 +195,41 @@ public:
   double MCS_Get_HL_Sigma(double segment_size, double P, double mass);
   double MCS_Get_Likelihood(double HL_sigma, double delta_angle);
   double MCS_Likelihood_Fitting(const vector<MCSSegment> segments, double segment_size, int PID);
-  
+
+  //==================
+  //===Fitting
+  //==================
+  static Double_t langaufun(Double_t *x, Double_t *par) {
+    Double_t invsq2pi = 0.398942280401;
+
+    Double_t np = 500.0;
+    Double_t sc = 5.0;
+    Double_t xx;
+    Double_t mpc;
+    Double_t fland;
+    Double_t sum = 0.0;
+    Double_t xlow,xupp;
+    Double_t step;
+    Double_t i;
+
+    mpc=par[1];
+    xlow = x[0] - sc * par[3];
+    xupp = x[0] + sc * par[3];
+    step = (xupp-xlow)/np;
+
+    for(i=1.0; i<=np/2; i++) {
+      xx = xlow + (i-.5) * step;
+      fland = TMath::Landau(xx,mpc,par[0]) / par[0];
+      sum += fland * TMath::Gaus(x[0],xx,par[3]);
+      xx = xupp - (i-.5) * step;
+      fland = TMath::Landau(xx,mpc,par[0]) / par[0];
+      sum += fland * TMath::Gaus(x[0],xx,par[3]);
+    }
+
+    return (par[2] * step * sum * invsq2pi / par[3]);
+  }
+
+  TF1 *langaufit(TH1D *his, Double_t *fitrange, Double_t *startvalues, Double_t *parlimitslo, Double_t *parlimitshi, Double_t *fitparams, Double_t *fiterrors, Double_t *ChiSqr, Int_t *NDF, Int_t *Status, TString FunName);
 
   //==================
   //===Plotting
