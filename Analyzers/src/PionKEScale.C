@@ -19,12 +19,11 @@ void PionKEScale::executeEvent(){
   if(!PassMichelScoreCut()) return;
   if(!PassBeamCosCut()) return;
   if(!PassBeamStartZCut()) return;
-
-  
-
   if(!PassProtonVetoCut()) return;
   if(!PassMuonVetoCut()) return;
   if(!PassStoppedPionVetoCut()) return;
+
+  //cout << "[PionKEScale::executeEvent] Passed all beam selections" << endl;
 
   pi_type = GetPiParType();
   pi_type_str = Form("%d", pi_type);
@@ -213,8 +212,16 @@ void PionKEScale::Run_Daughter_HypFit(const vector<Daughter>& pions){
   for(unsigned int i_pion = 0; i_pion < pions.size(); i_pion++){
 
     Daughter this_daughter = pions.at(i_pion);
-
-    double this_chi2_pion = Particle_chi2(this_daughter.allTrack_calibrated_dEdX_SCE(), this_daughter.allTrack_resRange_SCE(), 211);
+    int total_N_hits = this_daughter.allTrack_calibrated_dEdX_SCE().size();
+    vector<double> this_dEdx_vec;
+    for(int i_hit = 0; i_hit < total_N_hits; i_hit++){
+      double this_dEdx =  this_daughter.allTrack_calibrated_dEdX_SCE().at(i_hit);
+      //if(IsData) this_dEdx = MCCorr->Use_Other_Mod_Box_Params(this_dEdx, this_daughter.allTrack_EField_SCE().at(i_hit), 0.95, 0.214, 1.033);
+      if(IsData) this_dEdx = MCCorr->dEdx_scaled(this_dEdx, 1.0);
+      //if(!IsData) this_dEdx = Smear_dedx(this_dEdx, 0.05);
+      this_dEdx_vec.push_back(this_dEdx);
+    }
+    double this_chi2_pion = Particle_chi2(this_dEdx_vec, this_daughter.allTrack_resRange_SCE(), 211);
 
     TString particle_str = "Data";
     double true_KE = -9999.;
@@ -240,7 +247,11 @@ void PionKEScale::Run_Daughter_HypFit(const vector<Daughter>& pions){
     JSFillHist("Daughter_pion", "Daughter_pion_chi2_pion_" + particle_str, this_chi2_pion, 1., 1000., 0., 1000.);
 
     // == Select stopped pion
-    if(this_chi2_pion < 6.){
+    double chi2_pion_cut = 6.; // == central
+    //chi2_pion_cut = 4.;
+    //chi2_pion_cut = 20.;
+    //chi2_pion_cut = 12.;
+    if(this_chi2_pion < chi2_pion_cut){
       if(evt.MC){
 	JSFillHist("Daughter_pion", "Daughter_pion_true_start_KE_vs_KE_BB_chi2_pion_cut_" + particle_str, true_KE, this_KE_BB, 1., 400., 0., 2000., 400., 0., 2000.);
 	double this_range_res = (this_KE_BB - true_KE) / true_KE;
@@ -248,7 +259,13 @@ void PionKEScale::Run_Daughter_HypFit(const vector<Daughter>& pions){
 	JSFillHist("Daughter_pion", "Daughter_pion_true_start_KE_vs_KE_BB_Res_chi2_pion_cut_" + particle_str, true_KE, this_range_res, 1., 400., 0., 2000., 400., -2., 2.);
         JSFillHist("Daughter_pion", "Daughter_pion_true_start_KE_vs_KE_BB_InvRes_chi2_pion_cut_" + particle_str, true_KE, this_ragne_invres, 1., 400., 0., 2000., 400., -2., 2.);
       }
-      FitWithVectors(this_daughter.allTrack_calibrated_dEdX_SCE(), this_daughter.allTrack_resRange_SCE(), this_daughter.allTrack_EField_SCE(), particle_str, true_KE);
+
+      int total_N_hits = this_dEdx_vec.size();
+      for(int i = 0; i < total_N_hits; i++){
+	JSFillHist("Daughter_pion", "ResRange_vs_dEdx", this_daughter.allTrack_resRange_SCE().at(i), this_dEdx_vec.at(i), 1., 200., 0., 200., 1000., 0., 50.);
+      }
+
+      FitWithVectors(this_dEdx_vec, this_daughter.allTrack_resRange_SCE(), this_daughter.allTrack_EField_SCE(), particle_str, true_KE);
     }
   }
 
@@ -273,9 +290,6 @@ void PionKEScale::FitWithVectors(const vector<double>& dEdx, const vector<double
     this_N_hits = 0;
     for(int i_hit = skip_N_hits; i_hit < total_N_hits; i_hit++){
       double this_dEdx = dEdx.at(i_hit);
-      //if(!IsData) this_dEdx = MCCorr->dEdx_scaled(this_dEdx);
-      if(IsData) this_dEdx = MCCorr->Use_Abbey_Recom_Params(this_dEdx, E_field.at(i_hit), 0.9488);
-
       this_dEdx_vec.push_back(this_dEdx);
       this_range_vec.push_back(range.at(i_hit) - range.at(skip_N_hits));
       this_N_hits++;
@@ -457,6 +471,15 @@ vector<double> PionKEScale::GetSegmentTrueP(const vector<MCSSegment> & segments,
 
 
   return out;
+}
+
+double PionKEScale::Smear_dedx(double this_dEdx, double smear_with){
+  TRandom3 random;
+  //random.SetSeed(0);
+  double smearedValue = random.Gaus(this_dEdx, smear_with);
+
+  //cout << "[PionKEScale::Smear_dedx] this_dEdx : " << this_dEdx << ", smearedValue : " << smearedValue << endl;
+  return smearedValue;
 }
 
 PionKEScale::PionKEScale(){

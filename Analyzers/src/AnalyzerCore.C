@@ -143,10 +143,22 @@ Event AnalyzerCore::GetEvent(){
 //==================
 std::vector<Daughter> AnalyzerCore::GetAllDaughters(){
 
-  // ==== Beam related variables                                                             
+  // ==== Beam direction using allTrack info : no beam_allTrack trees in AltSCE data...
   TVector3 reco_beam_end(evt.reco_beam_endX, evt.reco_beam_endY, evt.reco_beam_endZ);
+  /*
   TVector3 reco_unit_beam(evt.reco_beam_allTrack_trackDirX, evt.reco_beam_allTrack_trackDirY, evt.reco_beam_allTrack_trackDirZ);
   reco_unit_beam = (1. / reco_unit_beam.Mag() ) * reco_unit_beam;
+  */
+
+  // ==== Beam direction using calo info
+  TVector3 pt0(evt.reco_beam_calo_startX,
+	       evt.reco_beam_calo_startY,
+	       evt.reco_beam_calo_startZ);
+  TVector3 pt1(evt.reco_beam_calo_endX,
+	       evt.reco_beam_calo_endY,
+	       evt.reco_beam_calo_endZ);
+  TVector3 dir = pt1 - pt0;
+  TVector3 reco_unit_beam = (1. / dir.Mag() ) * dir;
 
   vector<Daughter> out;
   for (size_t i = 0; i < evt.reco_daughter_allTrack_ID->size(); i++){
@@ -438,7 +450,7 @@ bool AnalyzerCore::PassBeamMomentumWindowCut() const{
 
   bool out = false;
   double P_beam_inst = evt.beam_inst_P * 1000. * P_beam_inst_scale;
-
+  
   //cout << "[AnalyzerCore::PassBeamMomentumWindowCut] P_beam_inst : " << P_beam_inst << ", P_beam_inst_scale : " << P_beam_inst_scale << endl;
   out = ((P_beam_inst > beam_momentum_low) && (P_beam_inst < beam_momentum_high));
   return out;

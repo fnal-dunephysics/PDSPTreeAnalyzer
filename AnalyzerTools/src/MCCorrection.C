@@ -50,7 +50,8 @@ void MCCorrection::ReadHistograms(){
     cout << "[MCCorrection::ReadHistograms] key = " << it -> first << endl;
   }
 
-  TString SCE_map_path_xrootd = "xroot://fndca1.fnal.gov:1094/pnfs/fnal.gov/usr/dune/scratch/users/sungbino/PDSP_data/SCE/SCE_DataDriven_180kV_v4.root";
+  //TString SCE_map_path_xrootd = "xroot://fndca1.fnal.gov:1094/pnfs/fnal.gov/usr/dune/scratch/users/sungbino/PDSP_data/SCE/SCE_DataDriven_180kV_v4.root";
+  TString SCE_map_path_xrootd = "xroot://fndca1.fnal.gov:1094/pnfs/fnal.gov/usr/dune/persistent/users/sungbino/PDSP_data/SCE/SCE_DataDriven_180kV_v4.root";
   cout << "[MCCorrection::ReadHistograms] SCE_map_path_xrootd : " << SCE_map_path_xrootd << endl;
   TFile *sce_file = TFile::Open(SCE_map_path_xrootd);
   xneg = (TH3F*)sce_file->Get("Reco_ElecField_X_Neg");
@@ -96,34 +97,54 @@ double MCCorrection::MomentumReweight_SF(TString flag, double P_beam_inst, int s
 
 }
 
-double MCCorrection::dEdx_scaled(double MC_dEdx){
+double MCCorrection::dEdx_scaled(double MC_dEdx, double slope_fraction){
   double f_const_p0 = 0.997;
   double f_pol1_p0 = 0.945;
-  double f_pol1_p1 = 0.021;
+  double f_pol1_p1 = 0.021; // maximum slope
+  double this_slope = f_pol1_p1 * slope_fraction;
 
   double scale = 1.;
   if(MC_dEdx < 2.44) scale = f_const_p0;
-  else scale = f_pol1_p0 + MC_dEdx * f_pol1_p1;
+  //else scale = f_pol1_p0 + MC_dEdx * f_pol1_p1;
+  else scale = this_slope * (MC_dEdx - 2.44) + f_const_p0; 
 
-  if(scale > 1.2) scale = 1.2;
+  //if(scale > 1.2) scale = 1.2;
 
-  //cout << "[dEdx_res::dEdx_scaled] scale : " << scale << endl; 
-  return scale * MC_dEdx;
+  //cout << "[dEdx_res::dEdx_scaled] MC_dEdx : " << MC_dEdx << ", scale : " << scale << ", slope_fraction : " << slope_fraction << endl; 
+  //return scale * MC_dEdx; // This is correct one
+
+
+  double this_dEdx = MC_dEdx;
+  if(MC_dEdx > 1.8 && MC_dEdx < 2.3) this_dEdx = MC_dEdx * 1.04;
+  return this_dEdx; // FIXME : just for test
+}
+
+double MCCorrection::Use_Other_Mod_Box_Params(double dEdx, double Efield, double alpha_new, double beta_new, double calib_const_ratio){
+  double alpha_default = 0.93;
+  double beta_default = 0.212;
+  double rho = 1.40;
+
+  double exp_term = exp( calib_const_ratio * (beta_new / beta_default) * log(alpha_default + beta_default * dEdx / (rho * Efield)) );
+  double new_dEdx = (exp_term - alpha_new) * rho * Efield / beta_new;
+
+  return new_dEdx;
 }
 
 double MCCorrection::Use_Abbey_Recom_Params(double dEdx, double Efield, double calib_const_ratio){
 
   double alpha_default = 0.93;
   double beta_default = 0.212;
-  double rho = 1.39;
+  double rho = 1.40;
 
-  double alpha_Abbey = 0.95;
-  double beta_Abbey = 0.212;
+  // == Change these values
+  double alpha_Abbey = 0.91;
+  double beta_Abbey = 0.214;
+  calib_const_ratio = 0.958;
 
   double exp_term = exp( calib_const_ratio * (beta_Abbey / beta_default) * log(alpha_default + beta_default * dEdx / (rho * Efield)) );
   double new_dEdx = (exp_term - alpha_Abbey) * rho * Efield / beta_Abbey;
-
-  //cout << "[MCCorrection::Use_Abbey_Recom_Params] dEdx : " << dEdx << ", new_dEdx : " << new_dEdx << endl;
+  
+  //if(fabs(dEdx - new_dEdx) > 0.00001) cout << "[MCCorrection::Use_Abbey_Recom_Params] dEdx : " << dEdx << ", new_dEdx : " << new_dEdx << endl;
 
   return new_dEdx;
 }
