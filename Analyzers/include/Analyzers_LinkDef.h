@@ -13,5 +13,6 @@
 #pragma link C++ class PionQE+;
 #pragma link C++ class dEdx_res+;
 #pragma link C++ class Fit_Modified_Box+;
+#pragma link C++ class Secondary_proton_ana+;
 
 #endif

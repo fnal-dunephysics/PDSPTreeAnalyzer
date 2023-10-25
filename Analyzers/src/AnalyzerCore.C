@@ -258,6 +258,20 @@ std::vector<Daughter> AnalyzerCore::GetAllDaughters(){
   return out;
 }
 
+std::vector<Daughter> AnalyzerCore::GetDaughters(const vector<Daughter>& in, int cut_Nhit, double cut_beam_dist, double cut_trackScore){
+
+  vector<Daughter> out;
+
+  for(unsigned int i = 0; i < in.size(); i++){
+    Daughter this_in = in.at(i);
+    if(this_in.PFP_trackScore() > cut_trackScore && this_in.PFP_nHits() > cut_Nhit && this_in.Beam_Dist() < cut_beam_dist){
+      out.push_back(this_in);
+    }
+  }
+
+  return out;
+}
+
 std::vector<Daughter> AnalyzerCore::GetPions(const vector<Daughter>& in){
 
   vector<Daughter> out;
@@ -285,16 +299,15 @@ std::vector<Daughter> AnalyzerCore::GetProtons(const vector<Daughter>& in){
 
   vector<Daughter> out;
 
-  double cut_cos_beam =0.95;
+  double cut_cos_beam = 0.9962; // For protons with scattering angle > 5 deg, TMath::ACos(0.9962) *180. / TMath::Pi() : (double) 4.9965133
   double cut_beam_dist = 10.;
   double cut_trackScore = 0.5;
-  double cut_emScore = 0.5;
-  double cut_chi2_proton = 50.;
+  double cut_chi2_proton = 10.;
   int cut_Nhit = 20;
   for(unsigned int i = 0; i < in.size(); i++){
     Daughter this_in = in.at(i);
     double this_chi2 = this_in.allTrack_Chi2_proton() /this_in.allTrack_Chi2_ndof();
-    if(this_in.PFP_trackScore() > cut_trackScore && this_in.PFP_emScore() < cut_emScore && this_chi2 < cut_chi2_proton && this_in.PFP_nHits() > cut_Nhit && this_in.Beam_Cos() < cut_cos_beam && this_in.Beam_Dist() < cut_beam_dist){
+    if(this_in.PFP_trackScore() > cut_trackScore && this_chi2 < cut_chi2_proton && this_in.PFP_nHits() > cut_Nhit && this_in.Beam_Cos() < cut_cos_beam && this_in.Beam_Dist() < cut_beam_dist){
       out.push_back(this_in);
     }
   }
@@ -335,6 +348,52 @@ std::vector<Daughter> AnalyzerCore::GetTrueProtons(const vector<Daughter>& in){
 //==================
 // Set Beam Variables
 //==================
+double AnalyzerCore::Get_true_ffKE(){
+ 
+  double KE_ff_true = -9999.;
+
+  if(abs(evt.true_beam_PDG) != 13 && abs(evt.true_beam_PDG) != 211 & abs(evt.true_beam_PDG) != 2212) return KE_ff_true;
+  //cout << "===========[AnalyzerCore::Get_true_ffKE]" << endl;
+
+  vector<double> true_trklen_accum;
+  true_trklen_accum.reserve((*evt.true_beam_traj_Z).size());
+  //cout << "true_trklen_accum.size() : " << true_trklen_accum.size() << endl;
+  int start_idx = -1;
+  for(int i_true_hit = 0; i_true_hit < (*evt.true_beam_traj_Z).size(); i_true_hit++){
+    //cout << "for i_true_hit : " << i_true_hit << "/" << (*evt.true_beam_traj_Z).size() << endl;
+    if((*evt.true_beam_traj_Z).at(i_true_hit) >= 0){
+      start_idx = i_true_hit - 1;
+      if (start_idx < 0) start_idx = -1;
+      break;
+    }
+    true_trklen_accum[i_true_hit] = 0.;
+  }
+  if (start_idx >= 0){
+    //cout << "if (start_idx >= 0)" << endl;
+    double true_trklen = -9999.;
+    for (int i_true_hit = start_idx + 1; i_true_hit < (*evt.true_beam_traj_Z).size(); i_true_hit++){
+      if (i_true_hit == start_idx+1) {
+	true_trklen = sqrt( pow( (*evt.true_beam_traj_X).at(i_true_hit)-(*evt.true_beam_traj_X).at(i_true_hit-1), 2)
+			    + pow( (*evt.true_beam_traj_Y).at(i_true_hit)-(*evt.true_beam_traj_Y).at(i_true_hit-1), 2)
+			    + pow( (*evt.true_beam_traj_Z).at(i_true_hit)-(*evt.true_beam_traj_Z).at(i_true_hit-1), 2)
+			    ) * (*evt.true_beam_traj_Z).at(i_true_hit)/((*evt.true_beam_traj_Z).at(i_true_hit)-(*evt.true_beam_traj_Z).at(i_true_hit-1));
+      }
+      else{
+	true_trklen += sqrt( pow( (*evt.true_beam_traj_X).at(i_true_hit)-(*evt.true_beam_traj_X).at(i_true_hit-1), 2)
+			     + pow( (*evt.true_beam_traj_Y).at(i_true_hit)-(*evt.true_beam_traj_Y).at(i_true_hit-1), 2)
+			     + pow( (*evt.true_beam_traj_Z).at(i_true_hit)-(*evt.true_beam_traj_Z).at(i_true_hit-1), 2)
+			     );
+      }
+      true_trklen_accum[i_true_hit] = true_trklen;
+    }
+    //cout << "for loop ended" << endl;
+    double this_dEdx = map_BB[abs(evt.true_beam_PDG)] -> meandEdx((*evt.true_beam_traj_KE)[start_idx+1]);
+    KE_ff_true = (*evt.true_beam_traj_KE).at(start_idx+1) + this_dEdx * true_trklen_accum[start_idx+1];
+  }
+
+  return KE_ff_true;
+}
+
 void AnalyzerCore::SetPandoraSlicePDG(int pdg){
   pandora_slice_pdg = pdg;
 };
@@ -379,6 +438,45 @@ int AnalyzerCore::GetPiParType(){
   }
 
   return pi::kMIDother;
+}
+
+int AnalyzerCore::GetPParType(){
+
+  if (!evt.MC){
+    return p::kData;
+  }
+  else if (evt.event%2){
+    return p::kData;
+  }
+  else if (!evt.reco_beam_true_byE_matched){
+    if (evt.reco_beam_true_byE_origin == 2) {
+      return p::kMIDcosmic;
+    }
+    else if (std::abs(evt.reco_beam_true_byE_PDG) == 211){
+      return p::kMIDpi;
+    }
+    else if (evt.reco_beam_true_byE_PDG == 2212){
+      return p::kMIDp;
+    }
+    else if (std::abs(evt.reco_beam_true_byE_PDG) == 13){
+      return p::kMIDmu;
+    }
+    else if (std::abs(evt.reco_beam_true_byE_PDG) == 11 ||
+             evt.reco_beam_true_byE_PDG == 22){
+      return p::kMIDeg;
+    }
+    else {
+      return p::kMIDother;
+    }
+  }
+  else if (evt.true_beam_PDG == 2212){
+    if ((*evt.true_beam_endProcess) == "protonInelastic"){
+      return p::kPInel;
+    }
+    else return p::kPElas;
+  }
+
+  return p::kMIDother;
 }
 
 //==================
@@ -557,6 +655,11 @@ void AnalyzerCore::Init(){
 void AnalyzerCore::Init_evt(){
   daughter_michel_score = -999.;
   beam_costh = -999;
+  beam_TPC_theta = -999.;
+  beam_TPC_phi = -999.;
+  delta_X_spec_TPC = -999.;
+  delta_Y_spec_TPC = -999.;
+  cos_delta_spec_TPC = -999.;
   chi2_proton = -1.;
   if (!evt.reco_beam_calo_wire->empty()){
     if (evt.reco_beam_vertex_nHits) daughter_michel_score = evt.reco_beam_vertex_michel_score_weight_by_charge;
@@ -584,6 +687,14 @@ void AnalyzerCore::Init_evt(){
       beamdir = beamdir.Unit();
       beam_costh = dir.Dot(beamdir);
     }
+
+    beam_TPC_theta = dir.Theta();
+    beam_TPC_phi = dir.Phi();
+    delta_X_spec_TPC = evt.beam_inst_X - evt.reco_beam_calo_startX;
+    delta_Y_spec_TPC = evt.beam_inst_Y - evt.reco_beam_calo_startY;
+    TVector3 spec_dir(evt.beam_inst_dirX, evt.beam_inst_dirY, evt.beam_inst_dirZ);
+    spec_dir = spec_dir.Unit();
+    cos_delta_spec_TPC = dir.Dot(spec_dir);
 
     chi2_proton = evt.reco_beam_Chi2_proton/evt.reco_beam_Chi2_ndof;
     chi2_pion = Particle_chi2( (*evt.reco_beam_calibrated_dEdX_SCE), (*evt.reco_beam_resRange_SCE), 211, 1.);

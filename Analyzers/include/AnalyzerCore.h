@@ -102,6 +102,7 @@ public:
   //==================
   Event GetEvent();
   std::vector<Daughter> GetAllDaughters();
+  std::vector<Daughter> GetDaughters(const vector<Daughter>& in, int cut_Nhit = 10,double cut_beam_dist = 10., double cut_trackScore = 0.5);
   std::vector<Daughter> GetPions(const vector<Daughter>& in);
   std::vector<Daughter> GetProtons(const vector<Daughter>& in);
   std::vector<Daughter> GetTruePions(const vector<Daughter>& in);
@@ -125,11 +126,20 @@ public:
   double KE_ff_reco = -999.;
   double KE_end_reco = -999.;
   double E_end_reco = -999.;
+  double Get_true_ffKE();
+  double P_ff_true = -999.;
+  double KE_ff_true = -999.;
+  //double KE_ff_true = -999.;
 
   int pandora_slice_pdg;
   void SetPandoraSlicePDG(int pdg);
   double daughter_michel_score;
   double beam_costh;
+  double beam_TPC_theta;
+  double beam_TPC_phi;
+  double delta_X_spec_TPC;
+  double delta_Y_spec_TPC;
+  double cos_delta_spec_TPC;
   double chi2_proton;
   double chi2_pion;
   double chi2_muon;
@@ -137,6 +147,9 @@ public:
   int GetPiParType();
   int pi_type = 0;
   TString pi_type_str = "";
+  int GetPParType();
+  int p_type = 0;
+  TString p_type_str = "";
 
   //==================
   // Event Selections
@@ -294,8 +307,7 @@ public:
 
 };
 
-namespace pi{
-  const unsigned int nIntTypes = 9;
+namespace pi{  const unsigned int nIntTypes = 9;
   const char intTypeName[nIntTypes+1][100] = {"Data",
 					      "PiInel",
 					      "PiElas",
