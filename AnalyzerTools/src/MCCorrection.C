@@ -37,11 +37,13 @@ void MCCorrection::ReadHistograms(){
     is >> f; // Class
     TFile *file = TFile::Open(MomentumReweight_path_xrootd + d);
     //cout << "MomentumReweight_path + d : " << MomentumReweight_path + d << endl;
-    //cout << "a : " << a << ", b : " << b << ", c : << " << c << ", d : " << d << ", e : " << e << ", f : " << f << endl;
+    cout << "a : " << a << ", b : " << b << ", c : " << c << ", d : " << d << ", e : " << e << ", f : " << f << endl;
 
     if(f=="TH1D"){
+      cout << "[MCCorrection::ReadHistograms] Saving to map_hist_MomentumReweight[" + a + "_" + b + "_" + c + "]" << endl; 
       histDir->cd();
       map_hist_MomentumReweight[a + "_" + b + "_" + c] = (TH1D *)file -> Get(e) -> Clone();
+      cout << "[MCCorrection::ReadHistograms] Saved to map_hist_MomentumReweight map" << endl;
     }
   }
 

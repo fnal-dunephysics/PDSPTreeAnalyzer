@@ -33,6 +33,8 @@
 #define M_Kaon 493.677
 #define M_e 0.510998
 #define M_pizero 134.976
+#define L_beamline 28.575 // meter
+#define v_light 299792458.0 // meter per sec
 
 class AnalyzerCore {
 
@@ -120,6 +122,7 @@ public:
   //==================
   // Set Beam Variables
   //==================
+  double P_beam_TOF = -999.;
   double P_beam_inst = 1000.;
   double mass_beam = 139.57;
   double P_ff_reco = -999.;
@@ -180,6 +183,7 @@ public:
   //==================
   // Additional Functions
   //==================
+  double TOF_to_P(double TOF, int PID);
   double Convert_P_Spectrometer_to_P_ff(double P_beam_inst, TString particle, TString key, int syst);
   double Particle_chi2(const vector<double> & dEdx, const vector<double> & ResRange, int PID, double dEdx_res_frac = 1.);
   double Particle_chi2_skip(const vector<double> & dEdx, const vector<double> & ResRange, int PID, double dEdx_res_frac);

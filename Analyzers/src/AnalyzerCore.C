@@ -615,9 +615,8 @@ void AnalyzerCore::initializeAnalyzerTools(){
 
   
   MCCorr->SetIsData(IsData);
-  if(IsData){
-    MCCorr->ReadHistograms();
-  }
+  MCCorr->ReadHistograms();
+  
   G4Xsec->ReadHistograms();
 }
 
@@ -705,6 +704,23 @@ void AnalyzerCore::Init_evt(){
 //==================
 // Additional Functions
 //==================
+double AnalyzerCore::TOF_to_P(double TOF, int PID){
+
+  double P_measured = -999.;
+  double mass = -999.;
+  if(PID == 2212) mass = M_proton;
+  else if(abs(PID) == 13) mass = M_mu;
+  else if(abs(PID) == 211) mass = M_pion;
+  else return P_measured;
+
+  //cout << "[AnalyzerCore::TOF_to_P] " << endl;
+  double L_over_ct = 1.e09 * L_beamline / (v_light * TOF);
+  P_measured = L_over_ct * mass / (sqrt(1. - pow(L_over_ct, 2.)));
+
+  return P_measured; // in MeV/c unit
+}
+
+
 double AnalyzerCore::Convert_P_Spectrometer_to_P_ff(double P_beam_inst, TString particle, TString key, int syst){
 
   double out = P_beam_inst;

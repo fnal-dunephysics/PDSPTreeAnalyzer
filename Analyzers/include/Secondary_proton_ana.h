@@ -10,10 +10,10 @@ class Secondary_proton_ana : public AnalyzerCore {
   void initializeAnalyzer();
   void executeEvent();
 
-  void FillBeamPlots(TString beam_selec_str);
+  void FillBeamPlots(TString beam_selec_str, double weight = 1.);
   void Beam_true_Eloss();
-  void Study_Beam_Proton_Eloss(TString beam_cut_str);
-  void True_Daughter_study(const vector<Daughter>& protons, const vector<Daughter>& pions);
+  void Study_Beam_Proton_Eloss(TString beam_cut_str, double weight = 1.);
+  void True_Daughter_study(const vector<Daughter>& protons, const vector<Daughter>& pions, double weight = 1.);
   void Daughter_study(const vector<Daughter>& protons);
 
   double KE_to_P(double KE, int PID);

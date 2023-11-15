@@ -1,3 +1,3 @@
 #Type	Type	Flag	        Rootfile			                Histname	Type
 Beam	SF	TrkLength	Reweighting_pion_TrkLength_noweight.root	Reweight	TH1D
-Beam	SF	P_reweight_Beam_CaloSize		Proton_P_reweight.root				Reweight	TH1D
+Beam	SF	Proton_CaloSize		Proton_P_reweight.root				P_reweight_Beam_CaloSize	TH1D
