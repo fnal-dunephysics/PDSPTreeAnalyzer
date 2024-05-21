@@ -122,6 +122,7 @@ public:
   //==================
   // Set Beam Variables
   //==================
+  double beam_TOF = -999.;
   double P_beam_TOF = -999.;
   double P_beam_inst = 1000.;
   double mass_beam = 139.57;

@@ -31,8 +31,11 @@ void Secondary_proton_ana::executeEvent(){
 
   if(evt.beam_inst_TOF->size() != 1) return;
 
+  cout << "evt.beam_inst_PDG_candidates->size() : " <<evt.beam_inst_PDG_candidates->size() << endl;
+
   //cout << "[Secondary_proton_ana::executeEvent] evt.beam_inst_TOF->size() : " << evt.beam_inst_TOF->size() << endl;
   //cout << "[Secondary_proton_ana::executeEvent] (*evt.beam_inst_TOF).at(0) : " << (*evt.beam_inst_TOF).at(0) << endl;
+  beam_TOF = (*evt.beam_inst_TOF).at(0);
   P_beam_TOF = TOF_to_P((*evt.beam_inst_TOF).at(0), 2212);
   //cout << "[Secondary_proton_ana::executeEvent] P_beam_TOF : " << P_beam_TOF << ", P_beam_inst : " << P_beam_inst << endl;
 
@@ -51,6 +54,7 @@ void Secondary_proton_ana::executeEvent(){
   //cout << "[Secondary_proton_ana::executeEvent] P_reweight : " << P_reweight << endl;
 
   FillBeamPlots("Beam_CaloSize", P_reweight);
+  Study_Beam_Proton_Eloss("Beam_CaloSize");
 
   //if(!PassAPA3Cut(100.)) return;
   //FillBeamPlots("Beam_APA3");
@@ -261,25 +265,39 @@ void Secondary_proton_ana::Study_Beam_Proton_Eloss(TString beam_cut_str, double 
   JSFillHist(beam_cut_str, "reco_stop_proton_P_ff_range", this_P_range, weight, 2000., 0., 2000.);
   JSFillHist(beam_cut_str, "reco_stop_proton_P_beam_reco_vs_P_beam_reco_minus_P_ff_range", P_beam_inst, delta_P_reco_beam_hypfit_range, weight, 2000., 0., 2000., 400., -200., 200.);
 
+  double delta_P_TOF_beam_reco = P_beam_inst - P_beam_TOF;
   double delta_P_TOF_beam_range_ff = P_beam_TOF - this_P_range;
   double delta_P_TOF_beam_hypfit_ff = P_beam_TOF - this_P_Hypfit;
+  JSFillHist(beam_cut_str, "reco_stop_proton_P_beam_TOF_vs_P_beam_TOF_minus_P_spec", P_beam_TOF, delta_P_TOF_beam_reco, weight, 2000., 0., 2000., 400., -200., 200.);
   JSFillHist(beam_cut_str, "reco_stop_proton_P_beam_TOF_vs_P_beam_TOF_minus_P_ff_range", P_beam_TOF, delta_P_TOF_beam_range_ff, weight, 2000., 0., 2000., 400., -200., 200.);
   JSFillHist(beam_cut_str, "reco_stop_proton_P_beam_TOF_vs_P_beam_TOF_minus_P_ff_hypfit", P_beam_TOF, delta_P_TOF_beam_hypfit_ff, weight, 2000., 0., 2000., 400., -200., 200.);
+
+  JSFillHist(beam_cut_str, "reco_stop_proton_P_beam_inst_vs_P_beam_TOF_minus_P_spec", P_beam_inst, delta_P_TOF_beam_reco, weight, 2000., 0., 2000., 400., -200., 200.);
   JSFillHist(beam_cut_str, "reco_stop_proton_P_beam_inst_vs_P_beam_TOF_minus_P_ff_range", P_beam_inst, delta_P_TOF_beam_range_ff, weight, 2000., 0., 2000., 400., -200., 200.);
   JSFillHist(beam_cut_str, "reco_stop_proton_P_beam_inst_vs_P_beam_TOF_minus_P_ff_hypfit", P_beam_inst, delta_P_TOF_beam_hypfit_ff, weight, 2000., 0., 2000., 400., -200., 200.);
 
   JSFillHist(beam_cut_str, "reco_stop_proton_P_beam_inst_vs_reco_stop_proton_P_beam_TOF", P_beam_inst, P_beam_TOF, weight, 2000., 0., 2000., 2000., 0., 2000.);
 
-  if(!IsData && P_ff_true > 0.){
-    JSFillHist(beam_cut_str, "true_proton_P_ff_chi2_cut", P_ff_true, weight, 2000., 0., 2000.);
-    if(p_type == 2){
-      JSFillHist(beam_cut_str, "reco_stop_proton_P_ff_hypfit_true_Elas", this_P_Hypfit, weight, 2000., 0., 2000.);
-      JSFillHist(beam_cut_str, "reco_stop_proton_P_ff_range_true_Elas", this_P_range, weight, 2000., 0., 2000.);
-    } 
+  //beam_TOF;
+  JSFillHist(beam_cut_str, "reco_stop_proton_P_beam_inst_vs_reco_stop_proton_beam_TOF", P_beam_inst, beam_TOF, weight, 2000., 0., 2000., 2000., 0., 200.);
+
+ 
+  if(!IsData){
+    //double delta_P_true_beam_TOF = P_beam_true - P_beam_TOF;
+    //JSFillHist(beam_cut_str, "reco_stop_proton_P_beam_TOF_vs_P_beam_TOF_minus_P_spec", P_beam_TOF, delta_P_TOF_beam_reco, weight, 2000., 0., 2000., 400., -200., 200.);
+
+    // == Using P_ff_true
+    if(P_ff_true > 0.){
+      JSFillHist(beam_cut_str, "true_proton_P_ff_chi2_cut", P_ff_true, weight, 2000., 0., 2000.);
+      if(p_type == 2){
+	JSFillHist(beam_cut_str, "reco_stop_proton_P_ff_hypfit_true_Elas", this_P_Hypfit, weight, 2000., 0., 2000.);
+	JSFillHist(beam_cut_str, "reco_stop_proton_P_ff_range_true_Elas", this_P_range, weight, 2000., 0., 2000.);
+      } 
+    }
   }
 }
 
-void Secondary_proton_ana::True_Daughter_study(const vector<Daughter>& protons, const vector<Daughter>& pions,  double weight){
+void Secondary_proton_ana::True_Daughter_study(const vector<Daughter>& protons, const vector<Daughter>& pions, double weight){
 
   int N_protons = protons.size();
   int N_pions = pions.size();
@@ -292,6 +310,35 @@ void Secondary_proton_ana::True_Daughter_study(const vector<Daughter>& protons, 
   JSFillHist("Daughter", "N_true_pions_by_Pandora_" + p_type_str, N_pions, weight, 10., -0.5, 9.5);
   JSFillHist("Daughter", "N_true_protons_" + p_type_str, evt.true_daughter_nProton, weight, 10., -0.5, 9.5);
   JSFillHist("Daughter", "N_true_pions_" + p_type_str, evt.true_daughter_nPiPlus + evt.true_daughter_nPiMinus, weight, 10., -0.5, 9.5);
+
+  // == Loop for reco daughter matched with true protons
+  for(unsigned int i = 0; i < protons.size(); i++){
+    Daughter this_proton = protons.at(i);
+
+    double this_chi2_proton = this_proton.allTrack_Chi2_proton() / this_proton.allTrack_Chi2_ndof();
+    unsigned int N_hit_colletion = this_proton.allTrack_calibrated_dEdX_SCE().size();
+    TString this_true_end_process = this_proton.PFP_true_byHits_endProcess();
+    double true_length = this_proton.PFP_true_byHits_len();
+    double KE_true_length = map_BB[2212] -> KEFromRangeSpline(true_length);
+    double true_KE = this_proton.PFP_true_byHits_startE() * 1000. - M_proton;
+
+    TVector3 unit_yz(0.,
+		     this_proton.allTrack_endY() - this_proton.allTrack_startY(),
+		     this_proton.allTrack_endZ() - this_proton.allTrack_startZ());
+    unit_yz = (1. / unit_yz.Mag()) * unit_yz;
+    TVector3 unit_z(0., 0., 1.);
+    double cos_theta_yz = cos(unit_yz.Angle(unit_z));
+    if(fabs(KE_true_length - true_KE) < 10. && this_true_end_process.Contains("hIoni")){
+      //cout << "this_true_end_process : " << this_true_end_process << ", true_KE : " << true_KE << ", KE_true_length : " << KE_true_length << ", this_chi2_proton : " << this_chi2_proton << ", N_hit_colletion : " << N_hit_colletion << endl;
+      JSFillHist("Daughter", "Reco_daughter_matched_proton_chi2_proton", this_chi2_proton, weight, 200., 0., 200.);
+      JSFillHist("Daughter", "Reco_daughter_matched_proton_chi2_proton_vs_nhit_collection", this_chi2_proton, N_hit_colletion, weight, 200., 0., 200., 100., -0.5, 99.5);
+      JSFillHist("Daughter", "Reco_daughter_matched_proton_chi2_proton_vs_cos_theta_yz", this_chi2_proton, cos_theta_yz, weight, 200., 0., 200., 100., -1., 1.);
+    }
+  }
+
+  
+
+
 }
 
 void Secondary_proton_ana::Daughter_study(const vector<Daughter>& protons){
