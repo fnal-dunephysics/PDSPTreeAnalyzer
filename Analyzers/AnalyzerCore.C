@@ -777,7 +777,7 @@ double AnalyzerCore::Particle_chi2(const vector<double> & dEdx, const vector<dou
   for(int j = N_skip; j < this_N_hits - N_skip; j++){
 
     double dEdx_measured = dEdx.at(j);
-    if(dEdx_measured < dEdx_truncate_bellow || dEdx_measured > dEdx_truncate_upper) continue;                                                                                              
+    if(dEdx_measured < dEdx_truncate_bellow || dEdx_measured > dEdx_truncate_upper) continue;
 
     double this_res_length = ResRange.at(j);
     int bin = map_profile[PID] -> FindBin( this_res_length );

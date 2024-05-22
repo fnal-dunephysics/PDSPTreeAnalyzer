@@ -1,7 +1,5 @@
 #include "Event.h"
 
-ClassImp(Event)
-
 Event::Event(){
   j_Beam_Momentum = -1.;
 }

@@ -12,7 +12,7 @@ void run_sec_proton(){
 
   Secondary_proton_ana m;
   m.MaxEvent = -1;
-  //m.MaxEvent = 1000;
+  //m.MaxEvent = 10000;
   //m.NSkipEvent = 0;
   //m.MaxEvent = m.NSkipEvent + 1000;
   m.LogEvery = 1000;
@@ -27,7 +27,7 @@ void run_sec_proton(){
   m.AddFile("xroot://fndca1.fnal.gov:1094/pnfs/fnal.gov/usr/dune/tape_backed/dunepro/protodune-sp/root-tuple/2022/detector/physics/PDSPProd4/00/00/52/19/PDSPProd4_data_1GeV_reco2_ntuple_v09_41_00_04.root"); // 1 GeV data
   //m.AddFile("xroot://fndca1.fnal.gov:1094/pnfs/fnal.gov/usr/dune/tape_backed/dunepro/protodune-sp/root-tuple/2022/detector/physics/PDSPProd4/00/00/58/25/PDSPProd4_data_0.5GeV_reco2_ntuple_v09_41_00_04.root"); // 0.5 GeV data
   //m.AddFile("xroot://fndca1.fnal.gov:1094/pnfs/fnal.gov/usr/dune/tape_backed/dunepro/protodune-sp/root-tuple/2022/detector/physics/AlternateSCE_RITM1506913/00/00/52/35/PDSPProd4_data_1GeV_reco2_ntuple_AltSCEData.root"); // 1 GeV data AltSCE
-  //m.SetOutfilePath("hists_MC_1.0GeV_sec_p_TOF.root");
+  //m.SetOutfilePath("hists_MC_1.0GeV_sec_p_test.root");
   m.SetOutfilePath("hists_Data_1.0GeV_sec_p_TOF.root");
   m.Init();
   m.initializeAnalyzer();  

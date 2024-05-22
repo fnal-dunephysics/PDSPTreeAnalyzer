@@ -1,20 +1,24 @@
+#include "/exp/dune/app/users/sungbino/ProtoDUNE/PDSPTreeAnalyzer/build/Linux/include/Analyzers/PionKEScale.h"
+
+/*
 R__LOAD_LIBRARY(libPhysics.so)
 R__LOAD_LIBRARY(libMathMore.so)
 R__LOAD_LIBRARY(libTree.so)
 R__LOAD_LIBRARY(libHist.so)
 R__LOAD_LIBRARY(libGpad.so)
 R__LOAD_LIBRARY(libGraf3d.so)
-R__LOAD_LIBRARY(libAnalyzerTools.so)
-R__LOAD_LIBRARY(libDataFormats.so)
-R__LOAD_LIBRARY(libAnalyzers.so)
-
+*/
 void run_PionKEScale(){
-
+  gSystem->Load("./lib/libDataFormats.so");
+  gSystem->Load("./lib/libAnalyzerTools.so");
+  gSystem->Load("./lib/libAnalyzers.so");
+  
   PionKEScale m;
+
   //dEdx_res m;
   //MCS_Performance m;
-  m.MaxEvent = -1;
-  //m.MaxEvent = 1000;
+  //m.MaxEvent = -1;
+  m.MaxEvent = 1000;
   //m.NSkipEvent = 0;
   //m.MaxEvent = m.NSkipEvent + 1000;
   m.LogEvery = 1000;
@@ -29,7 +33,7 @@ void run_PionKEScale(){
   //m.AddFile("xroot://fndca1.fnal.gov:1094/pnfs/fnal.gov/usr/dune/tape_backed/dunepro/protodune-sp/root-tuple/2022/detector/physics/PDSPProd4/00/00/52/19/PDSPProd4_data_1GeV_reco2_ntuple_v09_41_00_04.root"); // 1 GeV data
   //m.AddFile("xroot://fndca1.fnal.gov:1094/pnfs/fnal.gov/usr/dune/tape_backed/dunepro/protodune-sp/root-tuple/2022/detector/physics/PDSPProd4/00/00/58/25/PDSPProd4_data_0.5GeV_reco2_ntuple_v09_41_00_04.root"); // 0.5 GeV data
   //m.AddFile("xroot://fndca1.fnal.gov:1094/pnfs/fnal.gov/usr/dune/tape_backed/dunepro/protodune-sp/root-tuple/2022/detector/physics/AlternateSCE_RITM1506913/00/00/52/35/PDSPProd4_data_1GeV_reco2_ntuple_AltSCEData.root"); // 1 GeV data AltSCE
-  m.SetOutfilePath("hists_MC_1.0GeV_slope_fraction_100.root");
+  m.SetOutfilePath("hists_MC_1.0GeV_test.root");
   //m.SetOutfilePath("hists_MC_dEdx_1.0GeV_0p05_smear.root");
   m.Init();
   m.initializeAnalyzer();  
@@ -37,4 +41,6 @@ void run_PionKEScale(){
   m.SwitchToTempDir();
   m.Loop();
   m.WriteHist();
+
+
 }

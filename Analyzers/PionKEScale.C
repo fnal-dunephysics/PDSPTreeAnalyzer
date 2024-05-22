@@ -45,7 +45,7 @@ void PionKEScale::executeEvent(){
   vector<Daughter> daughters_all = GetAllDaughters();
   vector<Daughter> pions = GetPions(daughters_all);
   if(pions.size() > 0){
-    Run_Daughter_HypFit(pions);
+    //Run_Daughter_HypFit(pions);
     //Run_Daughter_MCS(pions);
   }
 
