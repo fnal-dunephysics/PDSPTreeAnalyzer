@@ -16,13 +16,13 @@
 #include "TFitResult.h"
 
 #include "PDSPTree.h"
-#include "Event.h"
-#include "Daughter.h"
-#include "MCSSegment.h"
-#include "BetheBloch.h"
-#include "GEANT4_XS.h"
-#include "MCCorrection.h"
-#include "Fittings.h"
+#include "../DataFormats/Event.h"
+#include "../DataFormats/Daughter.h"
+#include "../DataFormats/MCSSegment.h"
+#include "../AnalyzerTools/BetheBloch.h"
+#include "../AnalyzerTools/GEANT4_XS.h"
+#include "../AnalyzerTools/MCCorrection.h"
+#include "../AnalyzerTools/Fittings.h"
 
 //#define M_Z 91.1876
 //#define M_W 80.379

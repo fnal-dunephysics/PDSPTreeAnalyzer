@@ -7,16 +7,27 @@ set(SOURCES
   TDirectoryHelper.C
 )
 
+set(HDRFILES
+  BetheBloch.h
+  Fittings.h
+  GEANT4_XS.h
+  MCCorrection.h
+  TDirectoryHelper.h
+)
+
 # Create the shared library
 add_library(AnalyzerTools SHARED ${SOURCES})
 
 # Specify output directory for the shared library
 set_target_properties(AnalyzerTools PROPERTIES
-    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib
+  PUBLIC_HEADER "${HDRFILES}"
+  LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib
 )
 
-# Link the library with dir1_lib
-target_link_libraries(AnalyzerTools PRIVATE DataFormats ${ROOT_LIBRARIES})
+# Link the library
+#target_link_libraries(AnalyzerTools PRIVATE DataFormats ${ROOT_LIBRARIES})
+target_link_libraries(AnalyzerTools PUBLIC DataFormats ${ROOT_LIBRARIES})
 
-# Optionally, you can specify include directories for this library
-target_include_directories(AnalyzerTools PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${ROOT_INCLUDE_DIRS})
+install(TARGETS AnalyzerTools
+    EXPORT PDSPTreeAnalyzer-targets
+    PUBLIC_HEADER DESTINATION include/AnalyzerTools COMPONENT Development)

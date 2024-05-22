@@ -12,16 +12,40 @@ set(SOURCES
   Secondary_proton_ana.C
 )
 
+set(HDRFILES
+  PDSPTree.h
+  AnalyzerCore.h
+  dEdx_res.h
+  Fit_Modified_Box.h
+  MCS_Angle_Shapes.h
+  MCS_Performance.h
+  MCS_Tree_Maker.h
+  PionKEScale.h
+  PionQE.h
+  Secondary_proton_ana.h
+)
+
 # Create the shared library
 add_library(Analyzers SHARED ${SOURCES})
 
 # Specify output directory for the shared library
 set_target_properties(Analyzers PROPERTIES
-    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib
+  PUBLIC_HEADER "${HDRFILES}"
+  LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib
 )
 
-# Link the library with dir1_lib and dir3_lib
-target_link_libraries(Analyzers PRIVATE AnalyzerTools DataFormats ${ROOT_LIBRARIES})
+#include_directories(${CMAKE_SOURCE_DIR}/DataFormats)
+#include_directories(${CMAKE_SOURCE_DIR}/AnalyzerTools)
 
-# Specify include directories for this library
-target_include_directories(Analyzers PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${ROOT_INCLUDE_DIRS})
+# Link the library with dir1_lib and dir3_lib
+#target_link_libraries(Analyzers PRIVATE AnalyzerTools DataFormats ${ROOT_LIBRARIES})
+target_link_libraries(Analyzers
+PUBLIC
+  AnalyzerTools
+  DataFormats
+  ${ROOT_LIBRARIES}
+)
+
+install(TARGETS Analyzers
+    EXPORT PDSPTreeAnalyzer-targets
+    PUBLIC_HEADER DESTINATION include/Analyzers COMPONENT Development)

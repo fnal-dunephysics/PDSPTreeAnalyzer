@@ -2,9 +2,8 @@
 #define Event_h
 
 #include "TString.h"
-#include "TObject.h"
 
-class Event : public TObject {
+class Event{
 public:
 
   Event();
@@ -16,7 +15,6 @@ public:
 private:
   double j_Beam_Momentum;
 
-  ClassDef(Event,1)
 };
 
 #endif
