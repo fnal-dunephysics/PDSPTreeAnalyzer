@@ -14,12 +14,9 @@ tags = [
 ]
 
 dirnames = [
-'DataFormats/include',
-'DataFormats/src',
-'Analyzers/include',
-'Analyzers/src',
-'AnalyzerTools/include',
-'AnalyzerTools/src',
+'DataFormats/',
+'Analyzers/',
+'AnalyzerTools/',
 ]
 
 for tag in tags:

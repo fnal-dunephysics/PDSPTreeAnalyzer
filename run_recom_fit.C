@@ -1,19 +1,14 @@
-R__LOAD_LIBRARY(libPhysics.so)
-R__LOAD_LIBRARY(libMathMore.so)
-R__LOAD_LIBRARY(libTree.so)
-R__LOAD_LIBRARY(libHist.so)
-R__LOAD_LIBRARY(libGpad.so)
-R__LOAD_LIBRARY(libGraf3d.so)
-R__LOAD_LIBRARY(libAnalyzerTools.so)
-R__LOAD_LIBRARY(libDataFormats.so)
-R__LOAD_LIBRARY(libAnalyzers.so)
+#include "./Analyzers/dEdx_res.h"
 
 void run_recom_fit(){
-
+  gSystem->Load("./lib/libDataFormats.so");
+  gSystem->Load("./lib/libAnalyzerTools.so");
+  gSystem->Load("./lib/libAnalyzers.so");
+  
   //Fit_Modified_Box m;
   dEdx_res m;
-  m.MaxEvent = -1;
-  //m.MaxEvent = 100;
+  //m.MaxEvent = -1;
+  m.MaxEvent = 100;
   //m.NSkipEvent = 0;
   //m.MaxEvent = m.NSkipEvent + 1000;
   m.LogEvery = 1000;

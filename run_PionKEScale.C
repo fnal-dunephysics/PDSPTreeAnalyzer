@@ -1,13 +1,6 @@
-#include "/exp/dune/app/users/sungbino/ProtoDUNE/PDSPTreeAnalyzer/build/Linux/include/Analyzers/PionKEScale.h"
+//#include "/exp/dune/app/users/sungbino/ProtoDUNE/PDSPTreeAnalyzer/build/Linux/include/Analyzers/PionKEScale.h"
+#include "./Analyzers/PionKEScale.h"
 
-/*
-R__LOAD_LIBRARY(libPhysics.so)
-R__LOAD_LIBRARY(libMathMore.so)
-R__LOAD_LIBRARY(libTree.so)
-R__LOAD_LIBRARY(libHist.so)
-R__LOAD_LIBRARY(libGpad.so)
-R__LOAD_LIBRARY(libGraf3d.so)
-*/
 void run_PionKEScale(){
   gSystem->Load("./lib/libDataFormats.so");
   gSystem->Load("./lib/libAnalyzerTools.so");
@@ -18,7 +11,7 @@ void run_PionKEScale(){
   //dEdx_res m;
   //MCS_Performance m;
   //m.MaxEvent = -1;
-  m.MaxEvent = 1000;
+  m.MaxEvent = 100;
   //m.NSkipEvent = 0;
   //m.MaxEvent = m.NSkipEvent + 1000;
   m.LogEvery = 1000;
