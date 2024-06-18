@@ -1,3 +1,9 @@
+# Setup
+This code assume that you are using dunegpvm.
+```
+$ source setup.sh
+```
+
 # Compile
 
 ```
