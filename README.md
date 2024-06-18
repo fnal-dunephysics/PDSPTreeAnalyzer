@@ -1,5 +1,5 @@
 # Setup
-This code assume that you are using dunegpvm.
+This code assumes that you are using dunegpvms.
 ```
 $ source setup.sh
 ```
