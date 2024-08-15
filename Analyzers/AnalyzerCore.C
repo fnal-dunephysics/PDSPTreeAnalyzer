@@ -295,6 +295,30 @@ std::vector<Daughter> AnalyzerCore::GetPions(const vector<Daughter>& in){
   return out;
 }
 
+std::vector<Daughter> AnalyzerCore::GetStoppingPions(const vector<Daughter>& in, double chi2_pion_cut){
+
+  vector<Daughter> out;
+
+  double cut_cos_beam = 0.95;
+  double cut_beam_dist = 10.;
+  double cut_trackScore = 0.5;
+  double cut_emScore = 0.5;
+  double cut_chi2_proton = 60.;
+  double cut_startZ = 215.;
+  int cut_Nhit = 20;
+  for(unsigned int i = 0; i < in.size(); i++){
+    Daughter this_in = in.at(i);
+    double this_chi2 = this_in.allTrack_Chi2_proton() / this_in.allTrack_Chi2_ndof();
+    double this_chi2_pion = this_in.allTrack_Chi2_pion() / this_in.allTrack_Chi2_ndof();
+    if(this_in.PFP_trackScore() > cut_trackScore && this_in.PFP_emScore() < cut_emScore && this_chi2 > cut_chi2_proton
+       && this_in.PFP_nHits() > cut_Nhit && this_in.Beam_Cos() < cut_cos_beam && this_in.Beam_Dist() < cut_beam_dist && this_in.allTrack_startZ() < cut_startZ && this_chi2_pion < chi2_pion_cut){
+      out.push_back(this_in);
+    }
+  }
+
+  return out;
+}
+
 std::vector<Daughter> AnalyzerCore::GetProtons(const vector<Daughter>& in){
 
   vector<Daughter> out;

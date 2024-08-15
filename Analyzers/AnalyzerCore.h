@@ -106,6 +106,7 @@ public:
   std::vector<Daughter> GetAllDaughters();
   std::vector<Daughter> GetDaughters(const vector<Daughter>& in, int cut_Nhit = 10,double cut_beam_dist = 10., double cut_trackScore = 0.5);
   std::vector<Daughter> GetPions(const vector<Daughter>& in);
+  std::vector<Daughter> GetStoppingPions(const vector<Daughter>& in, double chi2_pion_cut = 6.);
   std::vector<Daughter> GetProtons(const vector<Daughter>& in);
   std::vector<Daughter> GetTruePions(const vector<Daughter>& in);
   std::vector<Daughter> GetTrueProtons(const vector<Daughter>& in);
