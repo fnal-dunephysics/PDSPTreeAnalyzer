@@ -21,17 +21,22 @@ void Secondary_proton_ana::executeEvent(){
   if(!PassBeamScraperCut()) return;
   if(!PassBeamMomentumWindowCut()) return;
   P_beam_inst = evt.beam_inst_P * 1000. * P_beam_inst_scale;
+  KE_beam_inst = map_BB[2212] -> MomentumtoKE(P_beam_inst);
+  exp_trk_len_beam_inst = map_BB[2212] -> RangeFromKESpline(KE_beam_inst);
+  trk_len_ratio = evt.reco_beam_alt_len / exp_trk_len_beam_inst;
+
   double P_reweight = 1.;
   if(!IsData){
     KE_ff_true = Get_true_ffKE();
     P_ff_true = KE_to_P(KE_ff_true, evt.true_beam_PDG);
     Beam_true_Eloss(); // == Compare E-loss due to beam plug between proton and pion beam particles
   }
+
   if(!Pass_Beam_PID(2212)) return;
 
   if(evt.beam_inst_TOF->size() != 1) return;
 
-  cout << "evt.beam_inst_PDG_candidates->size() : " <<evt.beam_inst_PDG_candidates->size() << endl;
+  //cout << "evt.beam_inst_PDG_candidates->size() : " <<evt.beam_inst_PDG_candidates->size() << endl;
 
   //cout << "[Secondary_proton_ana::executeEvent] evt.beam_inst_TOF->size() : " << evt.beam_inst_TOF->size() << endl;
   //cout << "[Secondary_proton_ana::executeEvent] (*evt.beam_inst_TOF).at(0) : " << (*evt.beam_inst_TOF).at(0) << endl;
@@ -84,10 +89,12 @@ void Secondary_proton_ana::executeEvent(){
   if(evt.reco_beam_alt_len < 5.) return;
   FillBeamPlots("Beam_AltLen", P_reweight);
 
-
   // == Study relation between P_beam_inst and P_ff
   Study_Beam_Proton_Eloss("Beam_AltLen");
 
+  if(trk_len_ratio > 0.7) return;
+  FillBeamPlots("Beam_TrkLenRatio", P_reweight);
+  
   mass_beam = M_proton;
   P_ff_reco = Convert_P_Spectrometer_to_P_ff(P_beam_inst, "pion", "AllTrue", 0);
   KE_ff_reco = sqrt(pow(P_ff_reco, 2) + pow(mass_beam, 2)) - mass_beam;
@@ -183,6 +190,7 @@ void Secondary_proton_ana::FillBeamPlots(TString beam_selec_str, double weight){
   JSFillHist(beam_selec_str, "Beam_P_beam_inst_" + p_type_str, P_beam_inst, weight, 2000., 0., 2000.);
   JSFillHist(beam_selec_str, "Beam_chi2_proton_" + p_type_str, chi2_proton, weight, 10000., 0., 1000.);
 
+  JSFillHist(beam_selec_str, "Beam_trk_len_ratio_" + p_type_str, trk_len_ratio, weight, 1000., 0., 10.);
 }
 
 void Secondary_proton_ana::Beam_true_Eloss(){

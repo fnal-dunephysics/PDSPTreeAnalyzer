@@ -124,7 +124,10 @@ public:
   //==================
   double beam_TOF = -999.;
   double P_beam_TOF = -999.;
-  double P_beam_inst = 1000.;
+  double P_beam_inst = -999.;
+  double KE_beam_inst = -999.;
+  double exp_trk_len_beam_inst = -999.;
+  double trk_len_ratio = -999.;
   double mass_beam = 139.57;
   double P_ff_reco = -999.;
   double KE_ff_reco = -999.;
