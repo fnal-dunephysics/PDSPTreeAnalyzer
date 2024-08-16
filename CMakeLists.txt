@@ -14,7 +14,8 @@ elseif(NOT DEFINED CMAKE_INSTALL_PREFIX)
 endif()
 
 # Locate the ROOT package and define a number of useful targets and variables.
-find_package(ROOT 6.28.12 CONFIG REQUIRED)
+#find_package(ROOT 6.28.12 CONFIG REQUIRED)
+find_package(ROOT 6.32.04 CONFIG REQUIRED COMPONENTS MathMore)
 if(NOT ROOT_FOUND)
   message(STATUS "ROOT package not found.")
   return()
