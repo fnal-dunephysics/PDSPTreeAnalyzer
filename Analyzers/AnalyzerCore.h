@@ -1,7 +1,7 @@
 #ifndef AnalyzerCore_h
 #define AnalyzerCore_h
 
-#include "TLorentzVector.h"
+#include "Math/Vector4D.h"
 #include "TString.h"
 #include "TMath.h"
 #include "TH3.h"
@@ -18,6 +18,7 @@
 #include "PDSPTree.h"
 #include "../DataFormats/Event.h"
 #include "../DataFormats/Daughter.h"
+#include "../DataFormats/TrueDaughter.h"
 #include "../DataFormats/MCSSegment.h"
 #include "../AnalyzerTools/BetheBloch.h"
 #include "../AnalyzerTools/GEANT4_XS.h"
@@ -103,6 +104,9 @@ public:
   // Get Particles
   //==================
   Event GetEvent();
+  std::vector<TrueDaughter> GetAllTrueDaughters();
+  std::vector<TrueDaughter> GetPionTrueDaughters(const vector<TrueDaughter>& in);
+  std::vector<TrueDaughter> GetProtonTrueDaughters(const vector<TrueDaughter>& in);
   std::vector<Daughter> GetAllDaughters();
   std::vector<Daughter> GetDaughters(const vector<Daughter>& in, int cut_Nhit = 10,double cut_beam_dist = 10., double cut_trackScore = 0.5);
   std::vector<Daughter> GetPions(const vector<Daughter>& in);

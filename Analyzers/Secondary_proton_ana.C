@@ -210,7 +210,6 @@ void Secondary_proton_ana::Beam_true_Eloss(){
   else return;
 
   if(KE_ff_true > 0.){
-    //cout << "[Secondary_proton_ana::Beam_true_Elos] KE_beam_true : " << KE_beam_true << ", KE_ff_true : " << KE_ff_true << endl;
     JSFillHist("true_beam", true_beam_pdg_str + "_delta_KE_true_ff", KE_beam_true - KE_ff_true, 1., 500., 0., 50.);
     JSFillHist("true_beam", true_beam_pdg_str + "_KE_beam_true_vs_delta_KE_true_ff", KE_beam_true, KE_beam_true - KE_ff_true, 1., 2000., 0., 2000., 500., 0., 50.);
   }

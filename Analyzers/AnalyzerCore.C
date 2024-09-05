@@ -141,6 +141,52 @@ Event AnalyzerCore::GetEvent(){
 //==================
 // Get Daughters
 //==================
+std::vector<TrueDaughter> AnalyzerCore::GetAllTrueDaughters(){
+
+  vector<TrueDaughter> out;
+  for (size_t i = 0; i < evt.true_beam_daughter_PDG->size(); i++){
+    TrueDaughter this_Daughter;
+    this_Daughter.Set_IsEmpty(false);
+    this_Daughter.Set_PDG((*evt.true_beam_daughter_PDG).at(i));
+    this_Daughter.Set_ID((*evt.true_beam_daughter_ID).at(i));
+    this_Daughter.Set_startX((*evt.true_beam_daughter_startX).at(i));
+    this_Daughter.Set_startY((*evt.true_beam_daughter_startY).at(i));
+    this_Daughter.Set_startZ((*evt.true_beam_daughter_startZ).at(i));
+    this_Daughter.Set_startPx((*evt.true_beam_daughter_startPx).at(i));
+    this_Daughter.Set_startPy((*evt.true_beam_daughter_startPy).at(i));
+    this_Daughter.Set_startPz((*evt.true_beam_daughter_startPz).at(i));
+    this_Daughter.Set_startP((*evt.true_beam_daughter_startP).at(i));
+    this_Daughter.Set_endX((*evt.true_beam_daughter_endX).at(i));
+    this_Daughter.Set_endY((*evt.true_beam_daughter_endY).at(i));
+    this_Daughter.Set_endZ((*evt.true_beam_daughter_endZ).at(i));
+    this_Daughter.Set_Process((*evt.true_beam_daughter_Process).at(i));
+    this_Daughter.Set_endProcess((*evt.true_beam_daughter_endProcess).at(i));
+    out.push_back(this_Daughter);
+  }
+
+  return out;
+}
+
+std::vector<TrueDaughter> AnalyzerCore::GetPionTrueDaughters(const vector<TrueDaughter>& in){
+  vector<TrueDaughter> out;
+  for(unsigned int i = 0; i < in.size(); i++){
+    TrueDaughter this_in = in.at(i);
+    if(abs(this_in.PDG()) == 211) out.push_back(this_in);
+  }
+
+  return out;
+}
+
+std::vector<TrueDaughter> AnalyzerCore::GetProtonTrueDaughters(const vector<TrueDaughter>& in){
+  vector<TrueDaughter> out;
+  for(unsigned int i = 0; i < in.size(); i++){
+    TrueDaughter this_in = in.at(i);
+    if(this_in.PDG() == 2212) out.push_back(this_in);
+  }
+
+  return out;
+}
+
 std::vector<Daughter> AnalyzerCore::GetAllDaughters(){
 
   // ==== Beam direction using allTrack info : no beam_allTrack trees in AltSCE data...
@@ -654,7 +700,8 @@ void AnalyzerCore::Init(){
   // == Additional Root files
   TString datapath = getenv("DATA_DIR");
   //TString datapath_xrootd = "xroot://fndca1.fnal.gov:1094/pnfs/fnal.gov/usr/dune/scratch/users/sungbino/PDSP_data/";
-  TString datapath_xrootd = "xroot://fndca1.fnal.gov:1094/pnfs/fnal.gov/usr/dune/persistent/users/sungbino/PDSP_data/";
+  //TString datapath_xrootd = "xroot://fndca1.fnal.gov:1094/pnfs/fnal.gov/usr/dune/persistent/users/sungbino/PDSP_data/";
+  TString datapath_xrootd = "/Users/sungbino/OneDrive/OneDrive/ProtoDUNE-SP/PionKI/PDSPTreeAnalyzer/data/v1/";
   cout << "[AnalyzerCore::Init] Open : " << datapath_xrootd << endl;
   TFile *file_profile = TFile::Open(datapath_xrootd + "/dEdx_profiles/dEdxrestemplates.root");
   map_profile[13] = (TProfile *)file_profile -> Get("dedx_range_mu");
