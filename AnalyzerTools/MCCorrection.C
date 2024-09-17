@@ -16,8 +16,12 @@ void MCCorrection::ReadHistograms(){
 
   //==== Momentum reweight
   TString MomentumReweight_path = datapath + "/Momentum_reweight/";
-  //TString MomentumReweight_path_xrootd = "xroot://fndca1.fnal.gov:1094/pnfs/fnal.gov/usr/dune/scratch/users/sungbino/PDSP_data/Momentum_reweight/"; 
-  TString MomentumReweight_path_xrootd = "xroot://fndca1.fnal.gov:1094/pnfs/fnal.gov/usr/dune/persistent/users/sungbino/PDSP_data/Momentum_reweight/";
+  TString MomentumReweight_path_xrootd = "/Users/sungbino/OneDrive/OneDrive/ProtoDUNE-SP/PionKI/PDSPTreeAnalyzer/data/v1/Momentum_reweight/";
+  TString is_dunegpvm_str = getenv("PDSPAna_isdunegpvm");
+  if(is_dunegpvm_str == "TRUE"){
+    MomentumReweight_path_xrootd = "xroot://fndca1.fnal.gov:1094/pnfs/fnal.gov/usr/dune/persistent/users/sungbino/PDSP_data/Momentum_reweight/";
+  }
+  
   cout << "[MCCorrection::ReadHistograms] MomentumReweight_path  : " << MomentumReweight_path << endl;
   string elline;
   cout << "[MCCorrection::ReadHistograms] Open : " << MomentumReweight_path + "histmap.txt" << endl;
@@ -52,8 +56,11 @@ void MCCorrection::ReadHistograms(){
     cout << "[MCCorrection::ReadHistograms] key = " << it -> first << endl;
   }
 
-  //TString SCE_map_path_xrootd = "xroot://fndca1.fnal.gov:1094/pnfs/fnal.gov/usr/dune/scratch/users/sungbino/PDSP_data/SCE/SCE_DataDriven_180kV_v4.root";
-  TString SCE_map_path_xrootd = "xroot://fndca1.fnal.gov:1094/pnfs/fnal.gov/usr/dune/persistent/users/sungbino/PDSP_data/SCE/SCE_DataDriven_180kV_v4.root";
+  TString SCE_map_path_xrootd = "/Users/sungbino/OneDrive/OneDrive/ProtoDUNE-SP/PionKI/PDSPTreeAnalyzer/data/v1/SCE/SCE_DataDriven_180kV_v4.root";
+  if(is_dunegpvm_str == "TRUE"){
+    SCE_map_path_xrootd = "xroot://fndca1.fnal.gov:1094/pnfs/fnal.gov/usr/dune/persistent/users/sungbino/PDSP_data/SCE/SCE_DataDriven_180kV_v4.root";
+  }
+
   cout << "[MCCorrection::ReadHistograms] SCE_map_path_xrootd : " << SCE_map_path_xrootd << endl;
   TFile *sce_file = TFile::Open(SCE_map_path_xrootd);
   xneg = (TH3F*)sce_file->Get("Reco_ElecField_X_Neg");

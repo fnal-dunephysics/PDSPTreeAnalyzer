@@ -14,7 +14,24 @@ elseif(NOT DEFINED CMAKE_INSTALL_PREFIX)
 endif()
 
 # Locate the ROOT package and define a number of useful targets and variables.
-find_package(ROOT 6.28.12 CONFIG REQUIRED)
+# Get the HOSTNAME environment variable
+# Attempt to get the HOSTNAME environment variable
+if(DEFINED ENV{HOSTNAME})
+    set(HOSTNAME $ENV{HOSTNAME})
+
+    # Check if the hostname contains "dunegpvm" and "fnal.gov"
+    if(HOSTNAME MATCHES ".*dunegpvm.*fnal.gov.*")
+        message(STATUS "Setting ROOT version for dunegpvm hosts")
+        find_package(ROOT 6.28.12 CONFIG REQUIRED)
+    else()
+        message(STATUS "Setting ROOT version for osx")
+        find_package(ROOT 6.32.04 CONFIG REQUIRED COMPONENTS MathMore)
+    endif()
+else() # assume osx
+    message(STATUS "Setting ROOT version for osx")
+    find_package(ROOT 6.32.04 CONFIG REQUIRED COMPONENTS MathMore)
+endif()
+
 if(NOT ROOT_FOUND)
   message(STATUS "ROOT package not found.")
   return()

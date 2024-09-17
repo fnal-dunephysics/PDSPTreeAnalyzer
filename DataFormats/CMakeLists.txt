@@ -3,12 +3,14 @@ set(SOURCES
   Daughter.C
   Event.C
   MCSSegment.C
+  TrueDaughter.C
 )
 
 set(HDRFILES
   Daughter.h
   Event.h
   MCSSegment.h
+  TrueDaughter.h
 )
 
 # Create the shared library

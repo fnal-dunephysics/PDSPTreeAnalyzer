@@ -240,7 +240,7 @@ double dEdx_res::dEdx_scaled(int PID, double MC_dEdx){
   double f_pol1_p1 = 0.021;
 
   double scale = 1.;
-  if(PID = 13){
+  if(PID == 13){
     if(MC_dEdx < 2.44) scale = f_const_p0;
     else scale = f_pol1_p0 + MC_dEdx * f_pol1_p1;
     //if(scale > 1.2) scale = 1.2;
@@ -256,7 +256,7 @@ double dEdx_res::dEdx_smeared(int PID, double MC_dEdx){
   double func_p2 = 2.02863;
 
   double smear_sigma = 0.;
-  if(PID = 13){
+  if(PID == 13){
     if(MC_dEdx > 2.27) smear_sigma = fabs(func_p0 + func_p1 /(MC_dEdx - func_p2));
   }
 
