@@ -15,21 +15,22 @@ export PDSPAnaLogEmail='sungbino@fnal.gov'
 export PDSPAnaLogWeb=''
 export PDSPAnaLogWebDir=''
 
+export PDSPAna_isdunegpvm="FALSE"
 if [[ $HOSTNAME == *"dunegpvm"*"fnal.gov" ]]; then
+    echo "@@@@ Working on dunegpvm"
+    export PDSPAna_isdunegpvm="TRUE"
+    export PDSPAnaRunlogDir="/dune/app/users/$USER/Grid/PDSPAnaRunlog/"
+    export PDSPAnaOutputDir="/dune/app/users/$USER/Grid/PDSPAnaOutput/"
 
-  echo "@@@@ Working on dunegpvm"
-  export PDSPAnaRunlogDir="/dune/app/users/$USER/Grid/PDSPAnaRunlog/"
-  export PDSPAnaOutputDir="/dune/app/users/$USER/Grid/PDSPAnaOutput/"
+    source /cvmfs/fermilab.opensciencegrid.org/packages/common/setup-env.sh ## -- For Alma 9
+    source /cvmfs/larsoft.opensciencegrid.org/spack-packages/setup-env.sh
+    spack load root@6.28.12
 
-  source /cvmfs/fermilab.opensciencegrid.org/packages/common/setup-env.sh ## -- For Alma 9
-  source /cvmfs/larsoft.opensciencegrid.org/spack-packages/setup-env.sh
-  spack load root@6.28.12
-
-  export ROOT_INCLUDE_PATH=/cvmfs/larsoft.opensciencegrid.org/spack-packages/opt/spack/linux-almalinux9-x86_64_v2/gcc-12.2.0/root-6.28.12-sfwfmqorvxttrxgfrfhoq5kplou2pddd/include/:$ROOT_INCLUDE_PATH
-  export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PDSPAna_LIB_PATH:/cvmfs/larsoft.opensciencegrid.org/spack-packages/opt/spack/linux-almalinux9-x86_64_v2/gcc-12.2.0/root-6.28.12-sfwfmqorvxttrxgfrfhoq5kplou2pddd/lib/
+    export ROOT_INCLUDE_PATH=/cvmfs/larsoft.opensciencegrid.org/spack-packages/opt/spack/linux-almalinux9-x86_64_v2/gcc-12.2.0/root-6.28.12-sfwfmqorvxttrxgfrfhoq5kplou2pddd/include/:$ROOT_INCLUDE_PATH
+    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PDSPAna_LIB_PATH:/cvmfs/larsoft.opensciencegrid.org/spack-packages/opt/spack/linux-almalinux9-x86_64_v2/gcc-12.2.0/root-6.28.12-sfwfmqorvxttrxgfrfhoq5kplou2pddd/lib/
 else ## -- Assume osx with ROOT 6.32.04 installed using the Homebrew
-  export ROOT_INCLUDE_PATH=/opt/homebrew/Cellar/root/6.32.04/include/:$ROOT_INCLUDE_PATH
-  export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PDSPAna_LIB_PATH:/opt/homebrew/Cellar/root/6.32.04/lib/
+    export ROOT_INCLUDE_PATH=/opt/homebrew/Cellar/root/6.32.04/include/:$ROOT_INCLUDE_PATH
+    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PDSPAna_LIB_PATH:/opt/homebrew/Cellar/root/6.32.04/lib/
 fi
 
 alias pdout="cd $PDSPAnaOutputDir/$PDSPAnaV/"
