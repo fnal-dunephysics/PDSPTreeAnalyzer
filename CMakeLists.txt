@@ -15,6 +15,7 @@ endif()
 
 # Locate the ROOT package and define a number of useful targets and variables.
 # Get the HOSTNAME environment variable
+# Attempt to get the HOSTNAME environment variable
 if(DEFINED ENV{HOSTNAME})
     set(HOSTNAME $ENV{HOSTNAME})
 
@@ -24,10 +25,11 @@ if(DEFINED ENV{HOSTNAME})
         find_package(ROOT 6.28.12 CONFIG REQUIRED)
     else()
         message(STATUS "Setting ROOT version for osx")
-        find_package(ROOT 6.32.04 CONFIG REQUIRED)
+        find_package(ROOT 6.32.04 CONFIG REQUIRED COMPONENTS MathMore)
     endif()
-else()
-    message(FATAL_ERROR "HOSTNAME environment variable is not defined.")
+else() # assume osx
+    message(STATUS "Setting ROOT version for osx")
+    find_package(ROOT 6.32.04 CONFIG REQUIRED COMPONENTS MathMore)
 endif()
 
 if(NOT ROOT_FOUND)
