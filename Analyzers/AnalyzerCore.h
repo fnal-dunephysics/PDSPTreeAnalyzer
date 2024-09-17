@@ -206,6 +206,8 @@ public:
   double dEdx_truncate_bellow_proton = 0.2;
   double Fit_HypTrkLength_Gaussian(const vector<double> & dEdx, const vector<double> & ResRange, int PID, bool save_graph, bool this_is_beam);
   double Fit_HypTrkLength_Likelihood(const vector<double> & dEdx, const vector<double> & ResRange, int PID, bool save_graph, bool this_is_beam);
+  double KE_Hypfit_Gaussian(const Daughter in, int PID);
+  double KE_Hypfit_Likelihood(const Daughter in, int PID);
   double Get_EQE_NC_Pion(double P_pion, double cos_theta, double E_binding, int which_sol);
   double Get_EQE_NC_Proton(double P_proton, double cos_theta, double E_binding, int which_sol);
   bool Is_EQE(double window);

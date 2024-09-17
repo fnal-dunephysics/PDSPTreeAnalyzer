@@ -164,6 +164,10 @@ void PionKI::Study_with_daughters(double weight){
   }
   
   if(stopping_pions.size() == 1 && stopping_protons.size() == 1){
+    double KE_hypfit_gaus = KE_Hypfit_Gaussian(stopping_pions.at(0), 211);
+    double KE_hypfit_like = KE_Hypfit_Likelihood(stopping_pions.at(0), 211);
+    cout << "KE_hypfit_gaus : " << KE_hypfit_gaus << ", KE_hypfit_like : " << KE_hypfit_like << endl;
+
     JSFillHist("count", "N_1pi_1p", 1., 1., 2., 0.5, 2.5);
 
     drawKIVar(stopping_pions.at(0), stopping_protons.at(0), weight);
