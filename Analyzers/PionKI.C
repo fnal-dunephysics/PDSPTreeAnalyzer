@@ -164,9 +164,15 @@ void PionKI::Study_with_daughters(double weight){
   }
   
   if(stopping_pions.size() == 1 && stopping_protons.size() == 1){
+    double KE_range = map_BB[211] -> KEFromRangeSpline(stopping_pions.at(0).allTrack_resRange_SCE().back());
     double KE_hypfit_gaus = KE_Hypfit_Gaussian(stopping_pions.at(0), 211);
     double KE_hypfit_like = KE_Hypfit_Likelihood(stopping_pions.at(0), 211);
-    cout << "KE_hypfit_gaus : " << KE_hypfit_gaus << ", KE_hypfit_like : " << KE_hypfit_like << endl;
+    if(!IsData){
+      double true_E = stopping_pions.at(0).PFP_true_byHits_startE() * 1000.;
+      double true_KE = true_E - M_pion;
+      cout << "true_KE : " << true_KE;
+    }
+    cout << ", KE_range : " << KE_range << ", KE_hypfit_gaus : " << KE_hypfit_gaus << ", KE_hypfit_like : " << KE_hypfit_like << endl;
 
     JSFillHist("count", "N_1pi_1p", 1., 1., 2., 0.5, 2.5);
 

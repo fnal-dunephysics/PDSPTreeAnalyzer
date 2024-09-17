@@ -1296,6 +1296,7 @@ double AnalyzerCore::KE_Hypfit_Likelihood(const Daughter in, int PID){
   int i_bestfit = -1;
   int this_N_hits = this_N_calo;
 
+  double default_m2lnL = -1.;
   // == Fit
   for(int i = 0; i < res_length_trial; i++){
 
@@ -1310,7 +1311,7 @@ double AnalyzerCore::KE_Hypfit_Likelihood(const Daughter in, int PID){
       // == Likelihood
       double this_pitch = fabs(ResRange.at(j - 1) - ResRange.at(j + 1)) / 2.0;
       double this_likelihood = map_BB[PID] -> dEdx_PDF(this_KE, this_pitch, dEdx_measured);
-      this_m2lnL += (-2.0) * log(this_likelihood);
+      if(this_likelihood > 1e-6)this_m2lnL += (-2.0) * log(this_likelihood);
     }
     //this_chi2 = this_chi2 / (this_N_hits + 0.); // == chi2 / n.d.f
     if(this_m2lnL < best_m2lnL){
@@ -1318,8 +1319,12 @@ double AnalyzerCore::KE_Hypfit_Likelihood(const Daughter in, int PID){
       best_additional_res_length = this_additional_res_length;
       i_bestfit = i;
     }
+    if(i == 0){
+      default_m2lnL = this_m2lnL;
+    }
   }
 
+  //cout << "default_m2lnL : " << default_m2lnL << ", best_m2lnL : " << best_m2lnL << endl;
   // == Result
   double original_res_length = ResRange.at(this_N_calo - 1); // == [cm]
   double best_total_res_length = best_additional_res_length + original_res_length; // == [cm]
