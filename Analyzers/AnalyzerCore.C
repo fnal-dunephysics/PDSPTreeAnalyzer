@@ -1197,6 +1197,25 @@ double AnalyzerCore::Get_EQE_NC_Pion(double P_pion, double cos_theta, double E_b
   double b = 4. * A * (A*A + B);
   double c = pow(A*A + B, 2.) + 4. * M_pion * M_pion * P_pion * P_pion * cos_theta * cos_theta;
 
+  double numer1 = (-1.) * b;
+  double numer_sqrt = sqrt(b*b - 4. * a * c);
+  double denom = 2. * a;
+
+  double EQE = (numer1 + (which_sol + 0.) * numer_sqrt ) / denom;
+
+  return EQE;
+}
+
+double AnalyzerCore::Get_EQE_NC_Proton(double P_proton, double cos_theta, double E_binding, int which_sol){
+
+  double E_proton = sqrt( pow(P_proton, 2.0) + pow(M_proton, 2.0) );
+  
+  double A = M_proton - E_binding - E_proton;
+
+  // == ax^2 + bx + c = 0 
+  double a = 4. * (A*A - P_proton * P_proton * cos_theta * cos_theta);
+  double b = 4. * A * (A*A - P_proton * P_proton);
+  double c = pow(A*A - P_proton * P_proton, 2.) + 4. * M_pion * M_pion * P_proton * P_proton * cos_theta * cos_theta;
 
   double numer1 = (-1.) * b;
   double numer_sqrt = sqrt(b*b - 4. * a * c);
