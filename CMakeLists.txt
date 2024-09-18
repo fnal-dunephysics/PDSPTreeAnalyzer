@@ -25,11 +25,11 @@ if(DEFINED ENV{HOSTNAME})
         find_package(ROOT 6.28.12 CONFIG REQUIRED)
     else()
         message(STATUS "Setting ROOT version for osx")
-        find_package(ROOT 6.32.04 CONFIG REQUIRED COMPONENTS MathMore)
+        find_package(ROOT 6.32.00 CONFIG REQUIRED COMPONENTS MathMore)
     endif()
 else() # assume osx
     message(STATUS "Setting ROOT version for osx")
-    find_package(ROOT 6.32.04 CONFIG REQUIRED COMPONENTS MathMore)
+    find_package(ROOT 6.32.00 CONFIG REQUIRED COMPONENTS MathMore)
 endif()
 
 if(NOT ROOT_FOUND)
