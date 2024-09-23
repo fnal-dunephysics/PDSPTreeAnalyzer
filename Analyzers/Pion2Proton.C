@@ -1,12 +1,12 @@
-#include "PionKI.h"
+#include "Pion2Proton.h"
 
-void PionKI::initializeAnalyzer(){
+void Pion2Proton::initializeAnalyzer(){
   cout << "[[PionAnalyzer::initializeAnalyzer]] Beam Momentum : " << Beam_Momentum << endl;
   debug_mode = true;
   debug_mode = false;
 }
 
-void PionKI::executeEvent(){
+void Pion2Proton::executeEvent(){
 
   pi_type = GetPiParType();
   pi_type_str = Form("%d", pi_type);
@@ -37,7 +37,7 @@ void PionKI::executeEvent(){
     Beam_true_Eloss(); // == Compare E-loss due to beam plug between proton and pion beam particles
   }
 
-  if(!IsData) True_KI_study("");
+  //if(!IsData) True_KI_study("");
   
   if(!Pass_Beam_PID(211)) return;
   
@@ -65,19 +65,10 @@ void PionKI::executeEvent(){
   if(chi2_proton < 170 || chi2_proton > 270) return;
   FillBeamPlots("Beam_chi2p", P_reweight);
 
-  /*
-  if(!PassBeamCosCut()) return;
-  if(!PassBeamStartZCut()) return;
-  if(!PassProtonVetoCut()) return;
-  if(!PassMuonVetoCut()) return;
-  if(!PassStoppedPionVetoCut()) return;
-  */
-  //cout << "[PionKI::executeEvent] Passed all beam selections" << endl;
-
   Study_with_daughters(P_reweight);
 }
 
-void PionKI::True_KI_study(TString prefix){
+void Pion2Proton::True_KI_study(TString prefix){
 
   double true_ke_ff = Get_true_ffKE();
   if(true_ke_ff < 0.) return;
@@ -137,67 +128,67 @@ void PionKI::True_KI_study(TString prefix){
         JSFillHist(prefix + "true_pion_tki_protonKE100cut", "deltaEQEm_proton",  this_deltaEQEm_proton, 1., 2000., -1000., 1000.);
         FillTKIVar(prefix + "true_pion_tki_protonKE100cut", p_vec_beam, p_vec_pion, p_vec_proton, 1.);
       }
-
+      
       //if(true_daughter_proton.size() == 1) cout << Form("this_EQE (pion, proton+, proton-) : (%f, %f, %f), deltaEQE : (%f, %f, %f)", this_EQE_pion, this_EQEp_proton, this_EQEm_proton, this_deltaEQE_pion, this_deltaEQEp_proton, this_deltaEQEm_proton) << endl;
-    }
-  }
-  else if(abs(evt.true_beam_PDG) == 2212){
-    JSFillHist(prefix + "true_proton", "N_true_pion", true_daughter_pion.size(), 1., 10., -0.5, 9.5);
-    JSFillHist(prefix + "true_proton", "N_true_proton", true_daughter_proton.size(), 1., 10., -0.5, 9.5);
-    JSFillHist(prefix + "true_proton", "N_true_pion_vs_N_true_proton", true_daughter_pion.size(), true_daughter_proton.size(), 1., 5., -0.5, 4.5, 5., -0.5, 4.5);
-
-    if(true_daughter_proton.size() > 1){
-      TrueDaughter this_proton_1 = true_daughter_proton.at(0);
-      TrueDaughter this_proton_2 = true_daughter_proton.at(1);
-
-      TVector3 p_vec_beam(evt.true_beam_endPx, evt.true_beam_endPy, evt.true_beam_endPz);
-      TVector3 p_vec_proton_1(this_proton_1.startPx(), this_proton_1.startPy(), this_proton_1.startPz());
-      TVector3 p_vec_proton_2(this_proton_2.startPx(), this_proton_2.startPy(), this_proton_2.startPz());
-      p_vec_beam = 1000. * p_vec_beam;
-      p_vec_proton_1 = 1000. * p_vec_proton_1;
-      p_vec_proton_2 = 1000. * p_vec_proton_2;
-
-      TString n_proton_str = Form("%zu_protons", true_daughter_proton.size());
-      FillTKIVar(prefix + "true_proton_tki", p_vec_beam, p_vec_proton_1, p_vec_proton_2, 1.);
-      FillTKIVar(prefix + "true_proton_tki_" + n_proton_str, p_vec_beam, p_vec_proton_1, p_vec_proton_2, 1.);
     }
   }
 }
 
-void PionKI::Study_with_daughters(double weight){
+void Pion2Proton::Study_with_daughters(double weight){
   vector<Daughter> daughters_all = GetAllDaughters();
   vector<Daughter> pions = GetPions(daughters_all);
   vector<Daughter> stopping_pions = GetStoppingPions(daughters_all, 6.);
   vector<Daughter> stopping_protons = GetProtons(daughters_all);
 
-  JSFillHist("count", "N_2nd_stopping_pions", stopping_pions.size(), 1., 10, -0.5, 9.5);
-  JSFillHist("count", "N_2nd_stopping_protons", stopping_protons.size(), 1., 10, -0.5, 9.5);
+  JSFillHist("count", "N_2nd_stopping_pions", stopping_pions.size(), weight, 10, -0.5, 9.5);
+  JSFillHist("count", "N_2nd_stopping_protons", stopping_protons.size(), weight, 10, -0.5, 9.5);
+
+  if(stopping_protons.size() > 0){
+    Daughter leading_p = stopping_protons.at(0);
+    double max_len = stopping_protons.at(0).allTrack_alt_len();
+    if(stopping_protons.size() > 1){
+      for(unsigned int i = 1; i < stopping_protons.size(); i++){
+	double this_len = stopping_protons.at(i).allTrack_alt_len();
+	if(this_len > max_len){
+	  max_len = this_len;
+	  leading_p = stopping_protons.at(i);
+	}
+      }
+    }
+
+    Study_leading_proton(leading_p, weight);
+  }
 
   if(stopping_protons.size() == 1){
-    True_KI_study("Reco_1p_");
-  }
-  
-  if(stopping_pions.size() == 1 && stopping_protons.size() == 1){
-    /*
-    double KE_range = map_BB[211] -> KEFromRangeSpline(stopping_pions.at(0).allTrack_resRange_SCE().back());
-    double KE_hypfit_gaus = KE_Hypfit_Gaussian(stopping_pions.at(0), 211);
-    double KE_hypfit_like = KE_Hypfit_Likelihood(stopping_pions.at(0), 211);
-    if(!IsData){
-      double true_E = stopping_pions.at(0).PFP_true_byHits_startE() * 1000.;
-      double true_KE = true_E - M_pion;
-      cout << "true_KE : " << true_KE;
-    }
-    cout << ", KE_range : " << KE_range << ", KE_hypfit_gaus : " << KE_hypfit_gaus << ", KE_hypfit_like : " << KE_hypfit_like << endl;
-    */
-    JSFillHist("count", "N_1pi_1p", 1., 1., 2., 0.5, 2.5);
-
-    drawKIVar(stopping_pions.at(0), stopping_protons.at(0), weight);
-    FillBeamPlots("Beam_1pi1p", weight);
-    True_KI_study("Reco_1pi1p_");
+    //True_KI_study("Reco_1p_");
   }
 }
 
-void PionKI::Beam_true_Eloss(){
+void Pion2Proton::Study_leading_proton(Daughter leading_p, double weight){
+
+  FillLeadingProtonPlot("nocut", leading_p, weight);
+  
+}
+
+void Pion2Proton::FillLeadingProtonPlot(TString suffix, Daughter leading_p, double weight){
+  TString this_dir = "leading_p_" + suffix;
+  double proton_KE = map_BB[2212] -> KEFromRangeSpline(leading_p.allTrack_resRange_SCE().back());
+
+  JSFillHist(this_dir, "beam_KE_ff_" + this_dir + "_" + pi_type_str, KE_ff_reco, weight, 2000., 0., 2000.);
+  JSFillHist(this_dir, "beam_KE_end_" + this_dir + "_" + pi_type_str, KE_end_reco, weight, 2000., 0., 2000.);
+  JSFillHist(this_dir, "leading_p_KE_" + this_dir + "_" + pi_type_str, proton_KE, weight, 2000., 0., 2000.);
+  JSFillHist(this_dir, "cosine_beam_p_" + this_dir + "_" + pi_type_str, leading_p.Beam_Cos(), weight, 2000., -1., 1.);
+  JSFillHist(this_dir, "beam_KE_end_vs_proton_KE_" + this_dir + "_" + pi_type_str, KE_end_reco, proton_KE, weight, 1500., 0., 1500., 1500., 0., 1500.);
+
+  if(KE_end_reco > 650. && KE_end_reco < 750.){
+    JSFillHist(this_dir, "cosine_beam_p_vs_proton_KE_at_KE_end_reco_650_to_750_" + this_dir + "_" + pi_type_str, leading_p.Beam_Cos(), proton_KE, weight, 200., -1., 1., 150., 0., 1500.);
+  }
+  else if(KE_end_reco > 750. && KE_end_reco < 850.){
+    JSFillHist(this_dir, "cosine_beam_p_vs_proton_KE_at_KE_end_reco_750_to_850_" + this_dir + "_" + pi_type_str, leading_p.Beam_Cos(), proton_KE, weight, 200., -1., 1., 150., 0., 1500.);
+  }
+}
+
+void Pion2Proton::Beam_true_Eloss(){
 
   int true_beam_pdg = evt.true_beam_PDG;
   TString true_beam_pdg_str = "";
@@ -219,7 +210,7 @@ void PionKI::Beam_true_Eloss(){
   }
 }
 
-void PionKI::FillBeamPlots(TString beam_selec_str, double weight){
+void Pion2Proton::FillBeamPlots(TString beam_selec_str, double weight){
 
   // == Fit results after calo-size cut
   double Beam_startZ_over_sigma = (evt.reco_beam_calo_startZ - Beam_startZ_mu_data) / Beam_startZ_sigma_data;
@@ -273,7 +264,7 @@ void PionKI::FillBeamPlots(TString beam_selec_str, double weight){
   JSFillHist(beam_selec_str, beam_selec_str + "_Beam_KE_end_" + pi_type_str, KE_end_reco, weight, 2000., 0., 2000.);
 }
 
-void PionKI::drawKIVar(Daughter pion, Daughter proton, double weight){
+void Pion2Proton::drawKIVar(Daughter pion, Daughter proton, double weight){
 
   TVector3 p_vec_beam(evt.reco_beam_trackDirX, evt.reco_beam_trackDirY, evt.reco_beam_trackDirZ);
   p_vec_beam = p_vec_beam * P_ff_reco;
@@ -293,7 +284,7 @@ void PionKI::drawKIVar(Daughter pion, Daughter proton, double weight){
   FillTKIVar("pion_tki", p_vec_beam, p_vec_pion, p_vec_proton, 1.);
 }
 
-double PionKI::KE_to_P(double KE, int PID){
+double Pion2Proton::KE_to_P(double KE, int PID){
 
   if(KE < 0.) return -999.;
   double mass = -999.;
@@ -306,7 +297,7 @@ double PionKI::KE_to_P(double KE, int PID){
   return this_P;
 }
 
-bool PionKI::Pass_beam_start_Z_cut(double N_sigma){
+bool Pion2Proton::Pass_beam_start_Z_cut(double N_sigma){
 
   bool out = false;
   double Beam_startZ_over_sigma = (evt.reco_beam_calo_startZ - Beam_startZ_mu_data) / Beam_startZ_sigma_data;
@@ -317,7 +308,7 @@ bool PionKI::Pass_beam_start_Z_cut(double N_sigma){
   return out;
 }
 
-bool PionKI::Pass_beam_delta_X_cut(double N_sigma){
+bool Pion2Proton::Pass_beam_delta_X_cut(double N_sigma){
 
   bool out = false;
   double Beam_delta_X_over_sigma = (delta_X_spec_TPC - Beam_delta_X_mu_data) / Beam_delta_X_sigma_data;
@@ -328,7 +319,7 @@ bool PionKI::Pass_beam_delta_X_cut(double N_sigma){
   return out;
 }
 
-bool PionKI::Pass_beam_delta_Y_cut(double N_sigma){
+bool Pion2Proton::Pass_beam_delta_Y_cut(double N_sigma){
 
   bool out = false;
   double Beam_delta_Y_over_sigma = (delta_Y_spec_TPC - Beam_delta_Y_mu_data) / Beam_delta_Y_sigma_data;
@@ -339,7 +330,7 @@ bool PionKI::Pass_beam_delta_Y_cut(double N_sigma){
   return out;
 }
 
-bool PionKI::Pass_beam_TPC_theta_cut(double N_sigma){
+bool Pion2Proton::Pass_beam_TPC_theta_cut(double N_sigma){
   bool out = false;
   double Beam_TPC_theta_over_sigma = (beam_TPC_theta - Beam_TPC_theta_mu_data) / Beam_TPC_theta_sigma_data;
   if(!IsData) Beam_TPC_theta_over_sigma = (beam_TPC_theta - Beam_TPC_theta_mu_mc) / Beam_TPC_theta_sigma_mc;
@@ -349,7 +340,7 @@ bool PionKI::Pass_beam_TPC_theta_cut(double N_sigma){
   return out;
 }
 
-bool PionKI::Pass_beam_TPC_phi_cut(double N_sigma){
+bool Pion2Proton::Pass_beam_TPC_phi_cut(double N_sigma){
   bool out = false;
   double Beam_TPC_phi_over_sigma = (beam_TPC_phi - Beam_TPC_phi_mu_data) / Beam_TPC_phi_sigma_data;
   if(!IsData) Beam_TPC_phi_over_sigma = (beam_TPC_phi - Beam_TPC_phi_mu_mc) / Beam_TPC_phi_sigma_mc;
@@ -359,7 +350,7 @@ bool PionKI::Pass_beam_TPC_phi_cut(double N_sigma){
   return out;
 }
 
-void PionKI::FillTKIVar(TString dir, TVector3 p_vec_beam, TVector3 p_vec_f1, TVector3 p_vec_f2, double weight){
+void Pion2Proton::FillTKIVar(TString dir, TVector3 p_vec_beam, TVector3 p_vec_f1, TVector3 p_vec_f2, double weight){
 
   double this_beam_phi = p_vec_beam.Phi();
 
@@ -425,10 +416,10 @@ void PionKI::FillTKIVar(TString dir, TVector3 p_vec_beam, TVector3 p_vec_f1, TVe
 
 }
 
-PionKI::PionKI(){
+Pion2Proton::Pion2Proton(){
 
 }
 
-PionKI::~PionKI(){
+Pion2Proton::~Pion2Proton(){
 
 }

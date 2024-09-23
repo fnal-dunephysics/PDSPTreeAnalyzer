@@ -319,6 +319,7 @@ public:
   //==== Output rootfile 
   void SwitchToTempDir();
   TFile *outfile;
+  TTree *fEventTree;
   void SetOutfilePath(TString outname);
 
 };

@@ -1889,6 +1889,9 @@ void AnalyzerCore::WriteHist(){
   }
 
   outfile->cd();
+  fEventTree->Write();
+
+  outfile->cd();
   outfile->mkdir("Fitter");
   outfile->cd("Fitter");
   for(std::map<TString, TGraph2D*>::iterator mapit = Fitter -> map_TGraph2D.begin(); mapit!=Fitter -> map_TGraph2D.end(); mapit++){
