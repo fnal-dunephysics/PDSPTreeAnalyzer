@@ -56,9 +56,18 @@ class PionSkimTreeMaker : public AnalyzerCore {
   int              _event;
   double           _beam_reco_KE_ff;
   double      	   _beam_reco_KE_end;
+  double           _beam_reco_dir_X;
+  double           _beam_reco_dir_Y;
+  double           _beam_reco_dir_Z;
   double      	   _beam_true_KE_ff;
   double           _beam_true_KE_end;
+  double           _beam_true_dir_X;
+  double      	   _beam_true_dir_Y;
+  double      	   _beam_true_dir_Z;
   int              _N_daughter_reco;
+  vector<double>   _daughter_reco_dir_X;
+  vector<double>   _daughter_reco_dir_Y;
+  vector<double>   _daughter_reco_dir_Z;
   vector<double>   _daughter_reco_KE_range_muon;
   vector<double>   _daughter_reco_KE_range_pion;
   vector<double>   _daughter_reco_KE_range_proton;
@@ -75,6 +84,9 @@ class PionSkimTreeMaker : public AnalyzerCore {
   vector<double>   _daughter_reco_startZ;
   vector<int>      _daughter_reco_true_PDG;
   vector<int>      _daughter_reco_true_ID;
+  vector<double>   _daughter_reco_true_dir_X;
+  vector<double>   _daughter_reco_true_dir_Y;
+  vector<double>   _daughter_reco_true_dir_Z;
   vector<double>   _daughter_reco_true_KE;
   vector<double>   _daughter_reco_true_P;
   vector<double>   _daughter_reco_true_mass;
@@ -82,7 +94,6 @@ class PionSkimTreeMaker : public AnalyzerCore {
   vector<double>   _daughter_reco_true_completeness;
   vector<double>   _daughter_reco_true_cos_true_beam;
   vector<string>   _daughter_reco_true_endProcess;
-
 };
 
 #endif

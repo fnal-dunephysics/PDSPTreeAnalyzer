@@ -5,15 +5,25 @@ void PionSkimTreeMaker::initializeAnalyzer(){
   debug_mode = true;
   debug_mode = false;
 
-  fEventTree = new TTree("PionBeamSkim", "Skimed for pion beam selection cuts");
+  outfile->cd();
+  fEventTree = new TTree("PionBeamSkim", "PionBeamSkim");
   fEventTree->Branch("run", &_run);
   fEventTree->Branch("subrun", &_subrun);
   fEventTree->Branch("event", &_event);
   fEventTree->Branch("beam_reco_KE_ff", &_beam_reco_KE_ff);
   fEventTree->Branch("beam_reco_KE_end", &_beam_reco_KE_end);
+  fEventTree->Branch("beam_reco_dir_X", &_beam_reco_dir_X);
+  fEventTree->Branch("beam_reco_dir_Y", &_beam_reco_dir_Y);
+  fEventTree->Branch("beam_reco_dir_Z", &_beam_reco_dir_Z);
   fEventTree->Branch("beam_true_KE_ff", &_beam_true_KE_ff);
   fEventTree->Branch("beam_true_KE_end", &_beam_true_KE_end);
+  fEventTree->Branch("beam_true_dir_X", &_beam_true_dir_X);
+  fEventTree->Branch("beam_true_dir_Y", &_beam_true_dir_Y);
+  fEventTree->Branch("beam_true_dir_Z", &_beam_true_dir_Z);
   fEventTree->Branch("N_daughter_reco", &_N_daughter_reco);
+  fEventTree->Branch("daughter_reco_dir_X", "std::vector<double>", &_daughter_reco_dir_X);
+  fEventTree->Branch("daughter_reco_dir_Y", "std::vector<double>", &_daughter_reco_dir_Y);
+  fEventTree->Branch("daughter_reco_dir_Z", "std::vector<double>", &_daughter_reco_dir_Z);
   fEventTree->Branch("daughter_reco_KE_range_muon", "std::vector<double>", &_daughter_reco_KE_range_muon);
   fEventTree->Branch("daughter_reco_KE_range_pion", "std::vector<double>", &_daughter_reco_KE_range_pion);
   fEventTree->Branch("daughter_reco_KE_range_proton", "std::vector<double>", &_daughter_reco_KE_range_proton);
@@ -29,6 +39,9 @@ void PionSkimTreeMaker::initializeAnalyzer(){
   fEventTree->Branch("daughter_reco_trackscore", "std::vector<double>", &_daughter_reco_trackscore);
   fEventTree->Branch("daughter_reco_startZ", "std::vector<double>", &_daughter_reco_startZ);
   fEventTree->Branch("daughter_reco_true_PDG", "std::vector<int>", &_daughter_reco_true_PDG);
+  fEventTree->Branch("daughter_reco_true_dir_X", "std::vector<double>", &_daughter_reco_true_dir_X);
+  fEventTree->Branch("daughter_reco_true_dir_Y", "std::vector<double>", &_daughter_reco_true_dir_Y);
+  fEventTree->Branch("daughter_reco_true_dir_Z", "std::vector<double>", &_daughter_reco_true_dir_Z);
   fEventTree->Branch("daughter_reco_true_ID", "std::vector<int>", &_daughter_reco_true_ID);
   fEventTree->Branch("daughter_reco_true_KE", "std::vector<double>", &_daughter_reco_true_KE);
   fEventTree->Branch("daughter_reco_true_P", "std::vector<double>", &_daughter_reco_true_P);
@@ -104,9 +117,18 @@ void PionSkimTreeMaker::FillSkimTree(){
   _event = -999;
   _beam_reco_KE_ff = -999.0;
   _beam_reco_KE_end = -999.0;
+  _beam_reco_dir_X = -999.0;
+  _beam_reco_dir_Y = -999.0;
+  _beam_reco_dir_Z = -999.0;
   _beam_true_KE_ff = -999.0;
   _beam_true_KE_end = -999.0;
+  _beam_true_dir_X = -999.0;
+  _beam_true_dir_Y = -999.0;
+  _beam_true_dir_Z = -999.0;
   _N_daughter_reco = -999;
+  _daughter_reco_dir_X.clear();
+  _daughter_reco_dir_Y.clear();
+  _daughter_reco_dir_Z.clear();
   _daughter_reco_KE_range_muon.clear();
   _daughter_reco_KE_range_pion.clear();
   _daughter_reco_KE_range_proton.clear();
@@ -123,6 +145,9 @@ void PionSkimTreeMaker::FillSkimTree(){
   _daughter_reco_startZ.clear();
   _daughter_reco_true_PDG.clear();
   _daughter_reco_true_ID.clear();
+  _daughter_reco_true_dir_X.clear();
+  _daughter_reco_true_dir_Y.clear();
+  _daughter_reco_true_dir_Z.clear();
   _daughter_reco_true_KE.clear();
   _daughter_reco_true_P.clear();
   _daughter_reco_true_mass.clear();
@@ -139,12 +164,24 @@ void PionSkimTreeMaker::FillSkimTree(){
   TVector3 p_vec_beam(evt.true_beam_endPx, evt.true_beam_endPy, evt.true_beam_endPz);
   p_vec_beam = 1000. * p_vec_beam;
 
+  TVector3 pt0(evt.reco_beam_calo_startX,
+               evt.reco_beam_calo_startY,
+               evt.reco_beam_calo_startZ);
+  TVector3 pt1(evt.reco_beam_calo_endX,
+               evt.reco_beam_calo_endY,
+               evt.reco_beam_calo_endZ);
+  TVector3 dir = pt1 - pt0;
+  TVector3 reco_unit_beam = (1. / dir.Mag() ) * dir;
+
   // == Set reco beam info
   _run = evt.run;
   _subrun = evt.subrun;
   _event = evt.event;
   _beam_reco_KE_ff = KE_ff_reco;
   _beam_reco_KE_end = KE_end_reco;
+  _beam_reco_dir_X = reco_unit_beam.X();
+  _beam_reco_dir_Y = reco_unit_beam.Y();
+  _beam_reco_dir_Z = reco_unit_beam.Z();
   _N_daughter_reco = daughter_all.size();
   
   for(size_t i = 0; i < daughter_all.size(); i++){
@@ -163,6 +200,13 @@ void PionSkimTreeMaker::FillSkimTree(){
     double this_trackscore = this_daughter.PFP_trackScore();
     double this_startZ = this_daughter.allTrack_startZ();
 
+    TVector3 this_unit_daughter(this_daughter.allTrack_endX() - this_daughter.allTrack_startX(),
+			   this_daughter.allTrack_endY() - this_daughter.allTrack_startY(),
+			   this_daughter.allTrack_endZ() - this_daughter.allTrack_startZ());
+    this_unit_daughter = (1./ this_unit_daughter.Mag() ) * this_unit_daughter;
+    _daughter_reco_dir_X.push_back(this_unit_daughter.X());
+    _daughter_reco_dir_Y.push_back(this_unit_daughter.Y());
+    _daughter_reco_dir_Z.push_back(this_unit_daughter.Z());
     _daughter_reco_KE_range_muon.push_back(this_KE_range_muon);
     _daughter_reco_KE_range_pion.push_back(this_KE_range_pion);
     _daughter_reco_KE_range_proton.push_back(this_KE_range_proton);
@@ -197,6 +241,9 @@ void PionSkimTreeMaker::FillSkimTree(){
 
       _daughter_reco_true_PDG.push_back(this_true_PDG);
       _daughter_reco_true_ID.push_back(this_true_ID);
+      _daughter_reco_true_dir_X.push_back(this_p_vec.X() / this_p_vec.Mag());
+      _daughter_reco_true_dir_Y.push_back(this_p_vec.Y() / this_p_vec.Mag());
+      _daughter_reco_true_dir_Z.push_back(this_p_vec.Z() / this_p_vec.Mag());
       _daughter_reco_true_KE.push_back(this_true_KE);
       _daughter_reco_true_P.push_back(this_true_P);
       _daughter_reco_true_mass.push_back(this_true_mass);
@@ -218,11 +265,13 @@ void PionSkimTreeMaker::FillSkimTree(){
     else if(evt.true_beam_PDG == 2212){
       true_KE_end = sqrt(pow(true_P_end, 2) + pow(M_proton, 2)) - M_proton;
     }
-    else return;
 
     // == Set true beam info
     _beam_true_KE_ff = KE_ff_true;
     _beam_true_KE_end = true_KE_end;
+    _beam_true_dir_X = p_vec_beam.X() / p_vec_beam.Mag();
+    _beam_true_dir_Y = p_vec_beam.Y() / p_vec_beam.Mag();
+    _beam_true_dir_Z = p_vec_beam.Z() / p_vec_beam.Mag();
   }  
 
   fEventTree->Fill();

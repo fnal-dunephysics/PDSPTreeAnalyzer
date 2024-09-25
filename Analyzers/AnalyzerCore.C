@@ -1888,7 +1888,7 @@ void AnalyzerCore::WriteHist(){
 
   }
 
-  outfile->cd();
+  //outfile->cd();
   fEventTree->Write();
 
   outfile->cd();
