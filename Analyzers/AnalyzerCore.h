@@ -107,6 +107,7 @@ public:
   std::vector<TrueDaughter> GetAllTrueDaughters();
   std::vector<TrueDaughter> GetPionTrueDaughters(const vector<TrueDaughter>& in);
   std::vector<TrueDaughter> GetProtonTrueDaughters(const vector<TrueDaughter>& in);
+  std::vector<TrueDaughter> GetNeutronTrueDaughters(const vector<TrueDaughter>& in);
   std::vector<Daughter> GetAllDaughters();
   std::vector<Daughter> GetDaughters(const vector<Daughter>& in, int cut_Nhit = 10,double cut_beam_dist = 10., double cut_trackScore = 0.5);
   std::vector<Daughter> GetPions(const vector<Daughter>& in);
@@ -114,7 +115,8 @@ public:
   std::vector<Daughter> GetProtons(const vector<Daughter>& in);
   std::vector<Daughter> GetTruePions(const vector<Daughter>& in);
   std::vector<Daughter> GetTrueProtons(const vector<Daughter>& in);
-
+  std::vector<Daughter> GetTrueNeutrons(const vector<Daughter>& in);
+  
   //==================
   // AnalyzerTools
   //==================

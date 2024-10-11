@@ -50,6 +50,21 @@ void PionSkimTreeMaker::initializeAnalyzer(){
   fEventTree->Branch("daughter_reco_true_completeness", "std::vector<double>", &_daughter_reco_true_completeness);
   fEventTree->Branch("daughter_reco_true_cos_true_beam", "std::vector<double>", &_daughter_reco_true_cos_true_beam);
   fEventTree->Branch("daughter_reco_true_endProcess", "std::vector<std::string>", &_daughter_reco_true_endProcess);
+  fEventTree->Branch("_N_daughter_all_true", &_N_daughter_all_true);
+  fEventTree->Branch("daughter_all_true_PDG", "std::vector<int>", &_daughter_all_true_PDG);
+  fEventTree->Branch("daughter_all_true_ID", "std::vector<int>", &_daughter_all_true_ID);
+  fEventTree->Branch("daughter_all_true_startX", "std::vector<double>", &_daughter_all_true_startX);
+  fEventTree->Branch("daughter_all_true_startY", "std::vector<double>", &_daughter_all_true_startY);
+  fEventTree->Branch("daughter_all_true_startZ", "std::vector<double>", &_daughter_all_true_startZ);
+  fEventTree->Branch("daughter_all_true_startPx", "std::vector<double>", &_daughter_all_true_startPx);
+  fEventTree->Branch("daughter_all_true_startPy", "std::vector<double>", &_daughter_all_true_startPy);
+  fEventTree->Branch("daughter_all_true_startPz", "std::vector<double>", &_daughter_all_true_startPz);
+  fEventTree->Branch("daughter_all_true_startP", "std::vector<double>", &_daughter_all_true_startP);
+  fEventTree->Branch("daughter_all_true_endX", "std::vector<double>", &_daughter_all_true_endX);
+  fEventTree->Branch("daughter_all_true_endY", "std::vector<double>", &_daughter_all_true_endY);
+  fEventTree->Branch("daughter_all_true_endZ", "std::vector<double>", &_daughter_all_true_endZ);
+  fEventTree->Branch("daughter_all_true_Process", "std::vector<std::string>", &_daughter_all_true_Process);
+  fEventTree->Branch("daughter_all_true_endProcess", "std::vector<std::string>", &_daughter_all_true_endProcess);
 }
 
 void PionSkimTreeMaker::executeEvent(){
@@ -93,7 +108,7 @@ void PionSkimTreeMaker::executeEvent(){
   if(!Pass_beam_start_Z_cut(2.0)) return;
   if(!Pass_beam_delta_X_cut(2.0)) return;
   if(!Pass_beam_delta_Y_cut(2.0)) return;
-  if(chi2_proton < 170 || chi2_proton > 270) return;
+  //if(chi2_proton < 170 || chi2_proton > 270) return;
 
   FillSkimTree();
 
@@ -126,6 +141,7 @@ void PionSkimTreeMaker::FillSkimTree(){
   _beam_true_dir_Y = -999.0;
   _beam_true_dir_Z = -999.0;
   _N_daughter_reco = -999;
+  _N_daughter_all_true = -999;
   _daughter_reco_dir_X.clear();
   _daughter_reco_dir_Y.clear();
   _daughter_reco_dir_Z.clear();
@@ -155,6 +171,20 @@ void PionSkimTreeMaker::FillSkimTree(){
   _daughter_reco_true_completeness.clear();
   _daughter_reco_true_cos_true_beam.clear();
   _daughter_reco_true_endProcess.clear();
+  _daughter_all_true_PDG.clear();
+  _daughter_all_true_ID.clear();
+  _daughter_all_true_startX.clear();
+  _daughter_all_true_startY.clear();
+  _daughter_all_true_startZ.clear();
+  _daughter_all_true_startPx.clear();
+  _daughter_all_true_startPy.clear();
+  _daughter_all_true_startPz.clear();
+  _daughter_all_true_startP.clear();
+  _daughter_all_true_endX.clear();
+  _daughter_all_true_endY.clear();
+  _daughter_all_true_endZ.clear();
+  _daughter_all_true_Process.clear();
+  _daughter_all_true_endProcess.clear();
 
   
   double P_beam_true =  -999.;
@@ -272,6 +302,28 @@ void PionSkimTreeMaker::FillSkimTree(){
     _beam_true_dir_X = p_vec_beam.X() / p_vec_beam.Mag();
     _beam_true_dir_Y = p_vec_beam.Y() / p_vec_beam.Mag();
     _beam_true_dir_Z = p_vec_beam.Z() / p_vec_beam.Mag();
+
+    vector<TrueDaughter> true_daughter_all = GetAllTrueDaughters();
+    _N_daughter_all_true = true_daughter_all.size();
+    
+    for(size_t i = 0; i < true_daughter_all.size(); i++){
+      TrueDaughter this_daughter = true_daughter_all.at(i);
+       _daughter_all_true_PDG.push_back(this_daughter.PDG());
+      _daughter_all_true_ID.push_back(this_daughter.ID());
+      _daughter_all_true_startX.push_back(this_daughter.startX());
+      _daughter_all_true_startY.push_back(this_daughter.startY());
+      _daughter_all_true_startZ.push_back(this_daughter.startZ());
+      _daughter_all_true_startPx.push_back(this_daughter.startPx() * 1000);
+      _daughter_all_true_startPy.push_back(this_daughter.startPy() * 1000);
+      _daughter_all_true_startPz.push_back(this_daughter.startPz() * 1000);
+      _daughter_all_true_startP.push_back(this_daughter.startP() * 1000);
+      _daughter_all_true_endX.push_back(this_daughter.endX());
+      _daughter_all_true_endY.push_back(this_daughter.endY());
+      _daughter_all_true_endZ.push_back(this_daughter.endZ());
+      _daughter_all_true_Process.push_back(this_daughter.Process());
+      _daughter_all_true_endProcess.push_back(this_daughter.endProcess());
+    }
+
   }  
 
   fEventTree->Fill();

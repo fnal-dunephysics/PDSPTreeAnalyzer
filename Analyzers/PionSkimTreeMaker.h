@@ -94,6 +94,21 @@ class PionSkimTreeMaker : public AnalyzerCore {
   vector<double>   _daughter_reco_true_completeness;
   vector<double>   _daughter_reco_true_cos_true_beam;
   vector<string>   _daughter_reco_true_endProcess;
+  int              _N_daughter_all_true;
+  vector<int>      _daughter_all_true_PDG;
+  vector<int>      _daughter_all_true_ID;
+  vector<double>   _daughter_all_true_startX;
+  vector<double>   _daughter_all_true_startY;
+  vector<double>   _daughter_all_true_startZ;
+  vector<double>   _daughter_all_true_startPx;
+  vector<double>   _daughter_all_true_startPy;
+  vector<double>   _daughter_all_true_startPz;
+  vector<double>   _daughter_all_true_startP;
+  vector<double>   _daughter_all_true_endX;
+  vector<double>   _daughter_all_true_endY;
+  vector<double>   _daughter_all_true_endZ;
+  vector<string>   _daughter_all_true_Process;
+  vector<string>   _daughter_all_true_endProcess;
 };
 
 #endif

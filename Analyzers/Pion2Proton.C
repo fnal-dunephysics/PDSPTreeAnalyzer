@@ -37,7 +37,7 @@ void Pion2Proton::executeEvent(){
     Beam_true_Eloss(); // == Compare E-loss due to beam plug between proton and pion beam particles
   }
 
-  //if(!IsData) True_KI_study("");
+  if(!IsData) True_KI_study("");
   
   if(!Pass_Beam_PID(211)) return;
   
@@ -75,61 +75,50 @@ void Pion2Proton::True_KI_study(TString prefix){
   vector<TrueDaughter> true_daughter_all = GetAllTrueDaughters();
   vector<TrueDaughter> true_daughter_pion = GetPionTrueDaughters(true_daughter_all);
   vector<TrueDaughter> true_daughter_proton = GetProtonTrueDaughters(true_daughter_all);
+  vector<TrueDaughter> true_daughter_neutron = GetNeutronTrueDaughters(true_daughter_all);
+
+  TString n_proton_str = Form("%zup", true_daughter_proton.size());
+  TString n_neutron_str = Form("%zun", true_daughter_neutron.size());
+  TString n_nucleon_str = Form("%zunuc", true_daughter_proton.size() + true_daughter_neutron.size());
   
   if(abs(evt.true_beam_PDG) == 211){
-    JSFillHist(prefix + "true_pion", "N_true_pion", true_daughter_pion.size(), 1., 10., -0.5, 9.5);
-    JSFillHist(prefix + "true_pion", "N_true_proton", true_daughter_proton.size(), 1., 10., -0.5, 9.5);
-    JSFillHist(prefix + "true_pion", "N_true_pion_vs_N_true_proton", true_daughter_pion.size(), true_daughter_proton.size(), 1., 5., -0.5, 4.5, 5., -0.5, 4.5);
+    JSFillHist(prefix + "true_pibeam", "N_true_pion", true_daughter_pion.size(), 1., 10., -0.5, 9.5);
+    JSFillHist(prefix + "true_pibeam", "N_true_proton", true_daughter_proton.size(), 1., 10., -0.5, 9.5);
+    JSFillHist(prefix + "true_pibeam", "N_true_neutron", true_daughter_neutron.size(), 1., 10., -0.5, 9.5);
+    JSFillHist(prefix + "true_pibeam", "N_true_pion_vs_N_true_proton", true_daughter_pion.size(), true_daughter_proton.size(), 1., 5., -0.5, 4.5, 5., -0.5, 4.5);
+    JSFillHist(prefix + "true_pibeam", "N_true_proton_vs_N_true_neutron", true_daughter_proton.size(), true_daughter_neutron.size(), 1., 5., -0.5, 4.5, 5., -0.5, 4.5);
 
-    if(true_daughter_pion.size() == 1 && true_daughter_proton.size() > 0){
-    
-      TrueDaughter this_pion = true_daughter_pion.at(0);
+    if(true_daughter_proton.size() > 0){
+      
       TrueDaughter this_proton = true_daughter_proton.at(0);
     
       TVector3 p_vec_beam(evt.true_beam_endPx, evt.true_beam_endPy, evt.true_beam_endPz);
-      TVector3 p_vec_pion(this_pion.startPx(), this_pion.startPy(), this_pion.startPz());
       TVector3 p_vec_proton(this_proton.startPx(), this_proton.startPy(), this_proton.startPz());
       p_vec_beam = 1000. * p_vec_beam;
-      p_vec_pion = 1000. * p_vec_pion;
       p_vec_proton = 1000. * p_vec_proton;
       double E_proton = pow( pow(p_vec_proton.Mag(), 2.) + pow(M_proton, 2.), 0.5);
       double KE_proton = E_proton - M_proton;
-      JSFillHist(prefix + "true_pion_tki", "KE_proton", KE_proton, 1., 2000., 0., 2000.);
-
-      double cos_theta_beam_sec_pion = p_vec_beam.Dot(p_vec_pion) / (p_vec_beam.Mag() * p_vec_pion.Mag());
-      double this_EQE_pion = Get_EQE_NC_Pion(p_vec_pion.Mag(), cos_theta_beam_sec_pion, 4., -1.);
-      JSFillHist(prefix + "true_pion_tki", "EQEm_pion",  this_EQE_pion, 1., 2000., 0., 2000.);
-
-      double this_deltaEQE_pion = sqrt(pow(p_vec_beam.Mag(), 2) + pow(M_pion,2)) - this_EQE_pion;
-      JSFillHist(prefix + "true_pion_tki", "deltaEQEm_pion",  this_deltaEQE_pion, 1., 2000., -1000., 1000.);
+      JSFillHist(prefix + "true_pibeam_ge1p", "KE_proton", KE_proton, 1., 2000., 0., 2000.);
 
       double cos_theta_beam_sec_proton = p_vec_beam.Dot(p_vec_proton) / (p_vec_beam.Mag() * p_vec_proton.Mag());
       double this_EQEm_proton = Get_EQE_NC_Proton(p_vec_proton.Mag(), cos_theta_beam_sec_proton, 4., -1);
       double this_deltaEQEm_proton = sqrt(pow(p_vec_beam.Mag(), 2) + pow(M_pion,2)) - this_EQEm_proton;
       double this_EQEp_proton = Get_EQE_NC_Proton(p_vec_proton.Mag(), cos_theta_beam_sec_proton, 4., 1);
       double this_deltaEQEp_proton = sqrt(pow(p_vec_beam.Mag(), 2) + pow(M_pion,2)) - this_EQEp_proton;
-      JSFillHist(prefix + "true_pion_tki", "EQEm_proton",  this_EQEm_proton, 1., 2000., 0., 2000.);
-      JSFillHist(prefix + "true_pion_tki", "deltaEQEm_proton",  this_deltaEQEm_proton, 1., 2000., -1000., 1000.);
+      JSFillHist(prefix + "true_pibeam_ge1p", "EQEm_proton",  this_EQEm_proton, 1., 2000., 0., 2000.);
+      JSFillHist(prefix + "true_pibeam_ge1p", "deltaEQEm_proton",  this_deltaEQEm_proton, 1., 2000., -1000., 1000.);
+      JSFillHist(prefix + "true_pibeam_ge1p", "deltaEQEm_proton_" + n_proton_str,  this_deltaEQEm_proton, 1., 2000., -1000., 1000.);
+      JSFillHist(prefix + "true_pibeam_ge1p", "deltaEQEm_proton_" + n_neutron_str,  this_deltaEQEm_proton, 1., 2000., -1000., 1000.);
+      JSFillHist(prefix + "true_pibeam_ge1p", "deltaEQEm_proton_" + n_nucleon_str,  this_deltaEQEm_proton, 1., 2000., -1000., 1000.);
       
-      TString n_proton_str = Form("%zu_protons", true_daughter_proton.size());
-      FillTKIVar(prefix + "true_pion_tki", p_vec_beam, p_vec_pion, p_vec_proton, 1.);
-      FillTKIVar(prefix + "true_pion_tki_" + n_proton_str, p_vec_beam, p_vec_pion, p_vec_proton, 1.);
-      if(fabs(this_deltaEQE_pion) < 50.){
-	FillTKIVar(prefix + "true_pion_tki_deltaEQEcut", p_vec_beam, p_vec_pion, p_vec_proton, 1.);
-      }
-
       if(KE_proton > 40.){
-	JSFillHist(prefix + "true_pion_tki_protonKE40cut", "EQEm_proton",  this_EQEm_proton, 1., 2000., 0., 2000.);
-	JSFillHist(prefix + "true_pion_tki_protonKE40cut", "deltaEQEm_proton",  this_deltaEQEm_proton, 1., 2000., -1000., 1000.);
-	FillTKIVar(prefix + "true_pion_tki_protonKE40cut", p_vec_beam, p_vec_pion, p_vec_proton, 1.);
+	JSFillHist(prefix + "true_pibeam_ge1p_protonKE40cut", "EQEm_proton",  this_EQEm_proton, 1., 2000., 0., 2000.);
+	JSFillHist(prefix + "true_pibeam_ge1p_protonKE40cut", "deltaEQEm_proton",  this_deltaEQEm_proton, 1., 2000., -1000., 1000.);
       }
       if(KE_proton > 100.){
-	JSFillHist(prefix + "true_pion_tki_protonKE100cut", "EQEm_proton",  this_EQEm_proton, 1., 2000., 0., 2000.);
-        JSFillHist(prefix + "true_pion_tki_protonKE100cut", "deltaEQEm_proton",  this_deltaEQEm_proton, 1., 2000., -1000., 1000.);
-        FillTKIVar(prefix + "true_pion_tki_protonKE100cut", p_vec_beam, p_vec_pion, p_vec_proton, 1.);
+	JSFillHist(prefix + "true_pibeam_ge1p_protonKE100cut", "EQEm_proton",  this_EQEm_proton, 1., 2000., 0., 2000.);
+        JSFillHist(prefix + "true_pibeam_ge1p_protonKE100cut", "deltaEQEm_proton",  this_deltaEQEm_proton, 1., 2000., -1000., 1000.);
       }
-      
-      //if(true_daughter_proton.size() == 1) cout << Form("this_EQE (pion, proton+, proton-) : (%f, %f, %f), deltaEQE : (%f, %f, %f)", this_EQE_pion, this_EQEp_proton, this_EQEm_proton, this_deltaEQE_pion, this_deltaEQEp_proton, this_deltaEQEm_proton) << endl;
     }
   }
 }
@@ -146,22 +135,25 @@ void Pion2Proton::Study_with_daughters(double weight){
   if(stopping_protons.size() > 0){
     Daughter leading_p = stopping_protons.at(0);
     double max_len = stopping_protons.at(0).allTrack_alt_len();
+
+    std::sort(stopping_protons.begin(), stopping_protons.end(), [](const Daughter &a, const Daughter &b) {
+        return a.allTrack_resRange_SCE().back() > b.allTrack_resRange_SCE().back();
+      });
+
+    double leading_p_KE	= map_BB[2212] -> KEFromRangeSpline(stopping_protons.at(0).allTrack_resRange_SCE().back());
+    JSFillHist("reco_pibeam_ge1p", "KE_1st_p", leading_p_KE, weight, 100, 0., 1000.);
+    
     if(stopping_protons.size() > 1){
-      for(unsigned int i = 1; i < stopping_protons.size(); i++){
-	double this_len = stopping_protons.at(i).allTrack_alt_len();
-	if(this_len > max_len){
-	  max_len = this_len;
-	  leading_p = stopping_protons.at(i);
-	}
-      }
+      double second_p_KE = map_BB[2212] -> KEFromRangeSpline(stopping_protons.at(1).allTrack_resRange_SCE().back());
+      JSFillHist("reco_pibeam_ge1p", "KE_2nd_p", second_p_KE, weight, 100, 0., 1000.);
     }
-
-    Study_leading_proton(leading_p, weight);
   }
-
+  
+  /*
   if(stopping_protons.size() == 1){
     //True_KI_study("Reco_1p_");
   }
+  */
 }
 
 void Pion2Proton::Study_leading_proton(Daughter leading_p, double weight){

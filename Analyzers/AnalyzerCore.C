@@ -187,6 +187,16 @@ std::vector<TrueDaughter> AnalyzerCore::GetProtonTrueDaughters(const vector<True
   return out;
 }
 
+std::vector<TrueDaughter> AnalyzerCore::GetNeutronTrueDaughters(const vector<TrueDaughter>& in){
+  vector<TrueDaughter> out;
+  for(unsigned int i = 0; i < in.size(); i++){
+    TrueDaughter this_in = in.at(i);
+    if(this_in.PDG() == 2112) out.push_back(this_in);
+  }
+
+  return out;
+}
+
 std::vector<Daughter> AnalyzerCore::GetAllDaughters(){
 
   // ==== Beam direction using allTrack info : no beam_allTrack trees in AltSCE data...
@@ -408,6 +418,21 @@ std::vector<Daughter> AnalyzerCore::GetTrueProtons(const vector<Daughter>& in){
     Daughter this_in = in.at(i);
     int this_true_PID = this_in.PFP_true_byHits_PDG();
     if(this_true_PID == 2212){
+      out.push_back(this_in);
+    }
+  }
+
+  return out;
+}
+
+std::vector<Daughter> AnalyzerCore::GetTrueNeutrons(const vector<Daughter>& in){
+
+  vector<Daughter> out;
+
+  for(unsigned int i = 0; i < in.size(); i++){
+    Daughter this_in = in.at(i);
+    int this_true_PID = this_in.PFP_true_byHits_PDG();
+    if(this_true_PID == 2112){
       out.push_back(this_in);
     }
   }

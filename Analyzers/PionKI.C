@@ -74,7 +74,7 @@ void PionKI::executeEvent(){
   */
   //cout << "[PionKI::executeEvent] Passed all beam selections" << endl;
 
-  Study_with_daughters(P_reweight);
+  //Study_with_daughters(P_reweight);
 }
 
 void PionKI::True_KI_study(TString prefix){
@@ -84,6 +84,16 @@ void PionKI::True_KI_study(TString prefix){
   vector<TrueDaughter> true_daughter_all = GetAllTrueDaughters();
   vector<TrueDaughter> true_daughter_pion = GetPionTrueDaughters(true_daughter_all);
   vector<TrueDaughter> true_daughter_proton = GetProtonTrueDaughters(true_daughter_all);
+
+  
+  for(unsigned int i = 0; i < true_daughter_all.size(); i++){
+    if(true_daughter_all.at(i).PDG() > 10000){
+      cout << "Evt : " << evt.event << ", PDGID : " << true_daughter_all.at(i).PDG() << ", P : " << Form("(%.1f, %.1f, %.1f)",
+													 1000. * true_daughter_all.at(i).startPx(),
+													 1000. * true_daughter_all.at(i).startPy(),
+													 1000. * true_daughter_all.at(i).startPz()) << endl;
+    }
+  }
   
   if(abs(evt.true_beam_PDG) == 211){
     JSFillHist(prefix + "true_pion", "N_true_pion", true_daughter_pion.size(), 1., 10., -0.5, 9.5);
