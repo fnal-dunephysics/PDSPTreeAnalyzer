@@ -12,6 +12,7 @@ set(SOURCES
   Secondary_proton_ana.C
   KaonTOF.C
   PionKI.C
+  PionStudy.C
 )
 
 set(HDRFILES
@@ -26,7 +27,8 @@ set(HDRFILES
   PionQE.h
   Secondary_proton_ana.h
   KaonTOF.h
-  PionKI.C
+  PionKI.h
+  PionStudy.h
 )
 
 # Create the shared library
