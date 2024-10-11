@@ -13,6 +13,8 @@ set(SOURCES
   KaonTOF.C
   PionKI.C
   PionStudy.C
+  Pion2Proton.C
+  PionSkimTreeMaker.C
 )
 
 set(HDRFILES
@@ -29,6 +31,8 @@ set(HDRFILES
   KaonTOF.h
   PionKI.h
   PionStudy.h
+  Pion2Proton.h
+  PionSkimTreeMaker.h
 )
 
 # Create the shared library
