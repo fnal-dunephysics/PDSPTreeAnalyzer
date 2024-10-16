@@ -321,7 +321,7 @@ public:
   //==== Output rootfile 
   void SwitchToTempDir();
   TFile *outfile;
-  TTree *fEventTree;
+  TTree *fEventTree = nullptr;
   void SetOutfilePath(TString outname);
 
 };

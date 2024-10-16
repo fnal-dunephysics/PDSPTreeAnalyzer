@@ -49,7 +49,7 @@ source $PDSPAna_WD/bin/BashColorSets.sh
 ## Todo list ##
 python python/PrintToDoLists.py
 source $PDSPAna_WD/tmp/ToDoLists.sh
-rm $PDSPAna_WD/tmp/ToDoLists.sh
+rm -f $PDSPAna_WD/tmp/ToDoLists.sh
 
 ## Log Dir ##
 echo "* Your Log Directory Usage"
