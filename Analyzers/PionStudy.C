@@ -514,27 +514,65 @@ void PionStudy::truthstudy(){
 
   TLorentzVector beam, pion, proton;
   double pionz;
-  /*
+  
   if (evt.true_beam_PDG == 211){
     //cout<<evt.true_beam_endP<<" "<<evt.true_beam_endP2<<" "<<evt.true_beam_endPx<<" "<<evt.true_beam_endPy<<" "<<evt.true_beam_endPz<<endl;
     beam.SetPxPyPzE(evt.true_beam_endPx*1000,
                     evt.true_beam_endPy*1000,
                     evt.true_beam_endPz*1000,
                     sqrt(pow(evt.true_beam_endP*1000,2)+mpi*mpi));
+    int npip = 0;
+    int npim = 0;
+    int npi0 = 0;
+    int np = 0;
+    int nn = 0;
+    int nmup = 0;
+    int type = -1;
     for (size_t i = 0; i<evt.true_beam_daughter_PDG->size(); ++i){
+      int pdg = evt.true_beam_daughter_PDG->at(i);
+      if (pdg == 211){
+        ++npip;
+      }
+      else if (pdg == -211){
+        ++npim;
+      }
+      else if (pdg == 111){
+        ++npi0;
+      }
+      else if (pdg == 2212){
+        ++np;
+      }
+      else if (pdg == 2112){
+        ++nn;
+      }
+      else if (pdg == -13){
+        ++nmup;
+      }
+      if (npip || npim){
+        type = 0; //QE
+      }
+      else if (npi0){
+        type = 1; //CEX
+      }
+      else if (nmup){
+        type = 2; //DK
+      }
+      else{
+        type = 3; //Abs
+      }
       double px = evt.true_beam_daughter_startPx->at(i)*1000;
       double py = evt.true_beam_daughter_startPy->at(i)*1000;
       double pz = evt.true_beam_daughter_startPz->at(i)*1000;
       double p = sqrt(px*px+py*py+pz*pz);
       //cout<<px<<" "<<py<<" "<<pz<<" "<<p<<endl;
-      if (evt.true_beam_daughter_PDG->at(i) == 211){
+      if (pdg == 211){
         double E = sqrt(p*p+mpi*mpi);
         if (E>pion.E()){
           pion.SetPxPyPzE(px,py,pz,E);
           pionz = evt.true_beam_daughter_startZ->at(i);
         }
       }
-      if (evt.true_beam_daughter_PDG->at(i) == 2212){
+      if (pdg == 2212){
         double E = sqrt(p*p+mp*mp);
         if (E>proton.E()){
           proton.SetPxPyPzE(px,py,pz,E);
@@ -543,17 +581,43 @@ void PionStudy::truthstudy(){
     }
     if (beam.E() && pion.E()){
       double Eqe = (pow(mp,2)-pow(mp-Eb,2)-pow(mpi,2)+2*(mp-Eb)*pion.E())/2/(mp-Eb-pion.E()+pion.Vect()*beam.Vect()/beam.Vect().Mag());
+      double Q2 = (beam.Vect() - pion.Vect()).Mag2()*1e-6; //GeV^2
+      double thetapi = pion.Vect().Angle(beam.Vect())*180/TMath::Pi();
+      //cout<<Q2<<endl;
       //cout<<beam.E()<<" "<<Eqe<<endl;
-      //JSFillHist("KI", "Eqe", beam.E(), Eqe, 1.,
-      //         120,0,1200,120,0,1200);
+      JSFillHist("KI", "Eqe", beam.E(), Eqe, 1.,
+                 120,0,1200,120,0,1200);
 //      if (pionz>250){
-//        JSFillHist("KI", "Eqe1", beam.E(), Eqe, 1.,
-//                   120,0,1200,120,0,1200);
-      //JSFillHist("KI", "KEpi", pion.E()-mpi, 1, 100, 0, 1000);
+      JSFillHist("KI", "dEqe", Eqe-beam.E(), 1.,
+                 100, -200, 200);
+      JSFillHist("KI", "KEpi", pion.E()-mpi, 1, 100, 0, 1000);
         //      }
+      JSFillHist("KI", "Q2", Q2,  1, 100,0,1);
+      JSFillHist("KI", "thQ2", Q2, thetapi, 1, 100,0,1,180,0,180);
+      if (abs(Eqe-beam.E())<100){
+        JSFillHist("KI", "thQ2qe", Q2, thetapi, 1, 100,0,1,180,0,180);
+      }
+      
+    }
+    JSFillHist("KI", "npip", npip, 1, 10, 0, 10);
+    JSFillHist("KI", "npim", npim, 1, 10, 0, 10);
+    JSFillHist("KI", "npi0", npi0, 1, 10, 0, 10);
+    JSFillHist("KI", "np", np, 1, 10, 0, 10);
+    JSFillHist("KI", "nn", nn, 1, 10, 0, 10);
+    if (type==0){
+      JSFillHist("KI", "Epi_QE", beam.E(), 1., 100, 0, 1000);
+    }
+    else if (type==1){
+      JSFillHist("KI", "Epi_CEX", beam.E(), 1., 100, 0, 1000);
+    }
+    else if (type==2){
+      JSFillHist("KI", "Epi_DK", beam.E(), 1., 100, 0, 1000);
+    }
+    else if (type==3){
+      JSFillHist("KI", "Epi_Abs", beam.E(), 1., 100, 0, 1000);
     }
   }
-  */
+
 }
 
 PionStudy::PionStudy(){
