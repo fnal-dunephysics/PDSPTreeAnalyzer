@@ -581,8 +581,12 @@ void PionStudy::truthstudy(){
     }
     if (beam.E() && pion.E()){
       double Eqe = (pow(mp,2)-pow(mp-Eb,2)-pow(mpi,2)+2*(mp-Eb)*pion.E())/2/(mp-Eb-pion.E()+pion.Vect()*beam.Vect()/beam.Vect().Mag());
-      double Q2 = (beam.Vect() - pion.Vect()).Mag2()*1e-6; //GeV^2
+      double Q2 = -(beam - pion).Mag2()*1e-6; //GeV^2
       double thetapi = pion.Vect().Angle(beam.Vect())*180/TMath::Pi();
+      double nu = beam.E() - pion.E();
+      //double q2 = (beam - pion).Vect().Mag2() - nu*nu;
+      //cout<<q2*1e-6<<" "<<Q2<<endl;
+      double xbj = Q2*1e6/2/mp/nu;
       //cout<<Q2<<endl;
       //cout<<beam.E()<<" "<<Eqe<<endl;
       JSFillHist("KI", "Eqe", beam.E(), Eqe, 1.,
@@ -597,7 +601,10 @@ void PionStudy::truthstudy(){
       if (abs(Eqe-beam.E())<100){
         JSFillHist("KI", "thQ2qe", Q2, thetapi, 1, 100,0,1,180,0,180);
       }
-      
+      JSFillHist("KI", "nu", nu, 1, 100,0,1000);
+      JSFillHist("KI", "nuQ2", Q2, nu, 1, 100,0,1,100,0,1000);
+      JSFillHist("KI", "xbj", xbj, 1, 100,0,2);
+      JSFillHist("KI", "xbjQ2", Q2, xbj, 1, 100,0,1,100,0,2);
     }
     JSFillHist("KI", "npip", npip, 1, 10, 0, 10);
     JSFillHist("KI", "npim", npim, 1, 10, 0, 10);

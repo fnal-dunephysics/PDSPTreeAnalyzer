@@ -14,7 +14,7 @@ void run_pionStudy(){
   //m.MCSample = "Data";
   m.MCSample = "MC";
   m.Beam_Momentum = 0.5;
-  // m.Beam_Momentum = 1.0;
+  //m.Beam_Momentum = 1.0;
   m.SetTreeName();
   //m.AddFile("xroot://fndca1.fnal.gov:1094/pnfs/fnal.gov/usr/dune/tape_backed/dunepro/protodune-sp/root-tuple/2022/mc/physics/PDSPProd4a/20/91/32/85/PDSPProd4a_MC_2GeV_reco1_sce_datadriven_v1_ntuple_v09_41_00_03.root"); // 2 GeV MC
   //m.AddFile("xroot://fndca1.fnal.gov:1094/pnfs/fnal.gov/usr/dune/tape_backed/dunepro/protodune-sp/root-tuple/2022/mc/physics/PDSPProd4a/18/80/01/67/PDSPProd4a_MC_1GeV_reco1_sce_datadriven_v1_ntuple_v09_41_00_03.root"); // 1 GeV MC
