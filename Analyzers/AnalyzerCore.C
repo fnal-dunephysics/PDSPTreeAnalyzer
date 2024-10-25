@@ -1914,7 +1914,7 @@ void AnalyzerCore::WriteHist(){
   }
 
   //outfile->cd();
-  fEventTree->Write();
+  if(fEventTree != nullptr) fEventTree->Write();
 
   outfile->cd();
   outfile->mkdir("Fitter");

@@ -10,177 +10,258 @@ void PionQE::initializeAnalyzer(){
 
 void PionQE::executeEvent(){
 
-  //cout << "test evt.beam_inst_P : " << evt.beam_inst_P * 1000. << endl;
-  
-  if(!PassBeamScraperCut()) return;
-  if(!PassBeamMomentumWindowCut()) return;
-  if(!PassPandoraSliceCut()) return;
-  if(!PassCaloSizeCut()) return;
-  if(!PassAPA3Cut()) return;
-  if(!PassMichelScoreCut()) return;
-  if(!PassBeamCosCut()) return;
-  if(!PassBeamStartZCut()) return;
-  if(!PassProtonVetoCut()) return;
-  if(!PassMuonVetoCut()) return;
-  if(!PassStoppedPionVetoCut()) return;
+  pi_type = GetPiParType();
+  pi_type_str = Form("%d", pi_type);
+  FillHist("beam_cut_flow", 0.5, 1., 20, 0., 20.);
 
+  // -- 1. Beam instruments
+  if(!PassBeamScraperCut()) return;
+  FillHist("beam_cut_flow", 1.5, 1., 20, 0., 20.);
+  if(!PassBeamMomentumWindowCut()) return;
+  FillHist("beam_cut_flow", 2.5, 1., 20, 0., 20.);
+  
   P_beam_inst = evt.beam_inst_P * 1000. * P_beam_inst_scale;
+  KE_beam_inst = map_BB[211] -> MomentumtoKE(P_beam_inst);
+  exp_trk_len_beam_inst = map_BB[211] -> RangeFromKESpline(KE_beam_inst);
+  trk_len_ratio = evt.reco_beam_alt_len / exp_trk_len_beam_inst;
+
   mass_beam = 139.57;
-  P_ff_reco = Convert_P_Spectrometer_to_P_ff(P_beam_inst, "pion", "AllTrue", 0);
-  KE_ff_reco = sqrt(pow(P_ff_reco, 2) + pow(mass_beam, 2)) - mass_beam;
+  //P_ff_reco = Convert_P_Spectrometer_to_P_ff(P_beam_inst, "pion", "AllTrue", 0);
+  //KE_ff_reco = sqrt(pow(P_ff_reco, 2) + pow(mass_beam, 2)) - mass_beam;
+  KE_ff_reco = KE_beam_inst; // FIXME : study energy measurement bias due to energy loss and spectrometer
   KE_end_reco = map_BB[211]->KEAtLength(KE_ff_reco, evt.reco_beam_alt_len);
   E_end_reco = KE_end_reco + mass_beam;
+  double P_reweight = 1.;
+  
+  if(!Pass_Beam_PID(211)) return;
+  FillHist("beam_cut_flow", 3.5, 1., 20, 0., 20.);
+  
+  // -- 2. TPC info 
+  if(!PassPandoraSliceCut()) return;
+  FillHist("beam_cut_flow", 4.5, 1., 20, 0., 20.);
 
-  JSFillHist("test", "htrack_P_beam", P_beam_inst, 1., 5000., 0., 5000.);
+  if(!PassCaloSizeCut()) return;
+  FillHist("beam_cut_flow", 5.5, 1., 20, 0., 20.);
+  FillBeamPlots("Beam_CaloSize", P_reweight);
 
+  if(!PassAPA3Cut()) return;
+  FillHist("beam_cut_flow", 6.5, 1., 20, 0., 20.);
+  FillBeamPlots("Beam_APA3", P_reweight);
+
+  if(!PassMichelScoreCut()) return;
+  FillHist("beam_cut_flow", 7.5, 1., 20, 0., 20.);
+  FillBeamPlots("Beam_MichelScore", P_reweight);
+
+  if(KE_end_reco < 100.) return;
+  FillHist("beam_cut_flow", 8.5, 1., 20, 0., 20.);
+  FillBeamPlots("Beam_KE_end", P_reweight);
+  
   // == Functions to study beam
   //Run_beam_dEdx_vector();
  
   // == Functions to study daughters
   vector<Daughter> daughters_all = GetAllDaughters();
-  vector<Daughter> pions = GetPions(daughters_all);
-  if(pions.size() > 0) Run_Daughter(pions);
+  vector<Daughter> loose_pions = SelectLoosePions(daughters_all);
+  Run_Daughter("AllRecoDaughters", daughters_all);
+  Run_Daughter("LoosePions", loose_pions);
+
+  // == pion selection cutflow
+  if(!IsData){
+    int N_pion_nocut = 0;
+    int N_pion_trkscore = 0;
+    int N_pion_chi2proton = 0;
+    int N_pion_trklen_upper = 0;
+    int N_pion_trklen_lower = 0;
+
+    int N_proton_nocut = 0;
+    int N_proton_trkscore = 0;
+    int N_proton_chi2proton = 0;
+    int N_proton_trklen_upper = 0;
+    int N_proton_trklen_lower = 0;
+    
+    vector<Daughter> pion_trkscore = SelectPions_trkscore(daughters_all, 0.5);
+    vector<Daughter> pion_chi2proton = SelectPions_chi2(pion_trkscore, 60.);
+    vector<Daughter> pion_trklen_upper = SelectPions_trklen_upper(pion_chi2proton, 180.);
+    vector<Daughter> pion_trklen_lower = SelectPions_trklen_lower(pion_trklen_upper, 10.);
+    for(unsigned int i = 0; i < daughters_all.size(); i++){
+      if(daughters_all.at(i).PFP_true_byHits_PDG() == 211) N_pion_nocut++;
+      if(daughters_all.at(i).PFP_true_byHits_PDG() == 2212) N_proton_nocut++;
+    }
+    for(unsigned int i = 0; i < pion_trkscore.size(); i++){
+      if(pion_trkscore.at(i).PFP_true_byHits_PDG() == 211) N_pion_trkscore++;
+      if(pion_trkscore.at(i).PFP_true_byHits_PDG() == 2212) N_proton_trkscore++;
+    }
+    for(unsigned int i = 0; i < pion_chi2proton.size(); i++){
+      if(pion_chi2proton.at(i).PFP_true_byHits_PDG() == 211) N_pion_chi2proton++;
+      if(pion_chi2proton.at(i).PFP_true_byHits_PDG() == 2212) N_proton_chi2proton++;
+    }
+    for(unsigned int i = 0; i < pion_trklen_upper.size(); i++){
+      if(pion_trklen_upper.at(i).PFP_true_byHits_PDG() == 211) N_pion_trklen_upper++;
+      if(pion_trklen_upper.at(i).PFP_true_byHits_PDG() == 2212) N_proton_trklen_upper++;
+    }
+    for(unsigned int i = 0; i < pion_trklen_lower.size(); i++){
+      if(pion_trklen_lower.at(i).PFP_true_byHits_PDG() == 211) N_pion_trklen_lower++;
+      if(pion_trklen_lower.at(i).PFP_true_byHits_PDG() == 2212) N_proton_trklen_lower++;
+    }
+    
+    FillHist("pion_sel_cutflow", 0., N_pion_nocut, 5., -0.5, 4.5);
+    FillHist("pion_sel_cutflow", 1., N_pion_trkscore, 5., -0.5, 4.5);
+    FillHist("pion_sel_cutflow", 2., N_pion_chi2proton, 5., -0.5, 4.5);
+    FillHist("pion_sel_cutflow", 3., N_pion_trklen_upper, 5., -0.5, 4.5);
+    FillHist("pion_sel_cutflow", 4., N_pion_trklen_lower, 5., -0.5, 4.5);
+
+    FillHist("proton_sel_cutflow", 0., N_proton_nocut, 5., -0.5, 4.5);
+    FillHist("proton_sel_cutflow", 1., N_proton_trkscore, 5., -0.5, 4.5);
+    FillHist("proton_sel_cutflow", 2., N_proton_chi2proton, 5., -0.5, 4.5);
+    FillHist("proton_sel_cutflow", 3., N_proton_trklen_upper, 5., -0.5, 4.5);
+    FillHist("proton_sel_cutflow", 4., N_proton_trklen_lower, 5., -0.5, 4.5);
+  }
 }
 
-void PionQE::Run_beam_dEdx_vector(){
+void PionQE::FillBeamPlots(TString beam_selec_str, double weight){
 
-  int total_N_hits = (*evt.reco_beam_calibrated_dEdX_SCE).size();
-  if(total_N_hits < 15) return;
-  
-  // == Checked that 0th index is first hit with the largest resRange
+  // == Fit results after calo-size cut
   /*
-  cout << "P_beam_inst : " << P_beam_inst << "\ti\tdEdx\tRange" << endl;
-  for(int i_hit = 0; i_hit < total_N_hits; i_hit++){
-    cout << i_hit << "\t" << (*evt.reco_beam_calibrated_dEdX_SCE).at(i_hit) << "\t" << (*evt.reco_beam_resRange_SCE).at(i_hit) << endl;
+  double Beam_startZ_over_sigma = (evt.reco_beam_calo_startZ - Beam_startZ_mu_data) / Beam_startZ_sigma_data;
+  double Beam_delta_X_over_sigma = (delta_X_spec_TPC - Beam_delta_X_mu_data) / Beam_delta_X_sigma_data;
+  double Beam_delta_Y_over_sigma = (delta_Y_spec_TPC - Beam_delta_Y_mu_data) / Beam_delta_Y_sigma_data;
+  if(!IsData){
+    Beam_startZ_over_sigma = (evt.reco_beam_calo_startZ - Beam_startZ_mu_mc) / Beam_startZ_sigma_mc;
+    Beam_delta_X_over_sigma = (delta_X_spec_TPC - Beam_delta_X_mu_mc) / Beam_delta_X_sigma_mc;
+    Beam_delta_Y_over_sigma = (delta_Y_spec_TPC - Beam_delta_Y_mu_mc) / Beam_delta_Y_sigma_mc;
   }
   */
+     
+  // == Comparison between beam spectrometer track and TPC reco track
+  JSFillHist(beam_selec_str, beam_selec_str + "_Beam_startX", evt.reco_beam_calo_startX, weight, 10000., -100., 900.);
+  JSFillHist(beam_selec_str, beam_selec_str + "_Beam_startY", evt.reco_beam_calo_startY, weight, 10000., -100., 900.);
+  JSFillHist(beam_selec_str, beam_selec_str + "_Beam_startZ", evt.reco_beam_calo_startZ, weight, 10000., -100., 900.);
+  JSFillHist(beam_selec_str, beam_selec_str + "_Beam_endZ", evt.reco_beam_calo_endZ, weight, 1000., -100., 900.);
+  JSFillHist(beam_selec_str, beam_selec_str + "_Beam_P_beam_inst", P_beam_inst, weight, 2000., 0., 2000.);
+  JSFillHist(beam_selec_str, beam_selec_str + "_Beam_costh", beam_costh, weight, 2000., -1., 1.);
+  JSFillHist(beam_selec_str, beam_selec_str + "_Beam_chi2_proton", chi2_proton, weight, 10000., 0., 1000.);
 
-  int this_N_hits = total_N_hits;
-  int skip_N_hits = 0;
-  double this_KE_BB = KE_ff_reco;
-  while(this_N_hits > 15 && this_KE_BB > 0.1){
-    vector<double> this_dEdx_vec;
-    vector<double> this_range_vec;
-    this_N_hits = 0;
-    for(int i_hit = skip_N_hits; i_hit < total_N_hits; i_hit++){
-      this_dEdx_vec.push_back((*evt.reco_beam_calibrated_dEdX_SCE).at(i_hit));
-      this_range_vec.push_back((*evt.reco_beam_resRange_SCE).at(i_hit));
-      this_N_hits++;
-    }
+  JSFillHist(beam_selec_str, beam_selec_str + "_Beam_startX_" + pi_type_str, evt.reco_beam_calo_startX, weight, 10000., -100., 900.);
+  JSFillHist(beam_selec_str, beam_selec_str + "_Beam_startY_" + pi_type_str, evt.reco_beam_calo_startY, weight, 10000., -100., 900.);
+  JSFillHist(beam_selec_str, beam_selec_str + "_Beam_startZ_" + pi_type_str, evt.reco_beam_calo_startZ, weight, 10000., -100., 900.);
+  JSFillHist(beam_selec_str, beam_selec_str + "_Beam_delta_X_spec_TPC_" + pi_type_str, delta_X_spec_TPC, weight, 2000., -100., 100.);
+  JSFillHist(beam_selec_str, beam_selec_str + "_Beam_delta_Y_spec_TPC_" + pi_type_str, delta_Y_spec_TPC, weight, 2000., -100., 100.);
+  JSFillHist(beam_selec_str, beam_selec_str + "_Beam_cos_delta_spec_TPC_" + pi_type_str, cos_delta_spec_TPC, weight, 2000., -1., 1.);
+  JSFillHist(beam_selec_str, beam_selec_str + "_Beam_costh_" + pi_type_str, beam_costh, weight, 2000., -1., 1.);
+  JSFillHist(beam_selec_str, beam_selec_str + "_Beam_TPC_theta_" + pi_type_str, beam_TPC_theta, weight, 5000., -1., 4.);
+  JSFillHist(beam_selec_str, beam_selec_str + "_Beam_TPC_phi_" + pi_type_str, beam_TPC_phi, weight, 8000., -4., 4.);
+  JSFillHist(beam_selec_str, beam_selec_str + "_Beam_endZ_" + pi_type_str, evt.reco_beam_calo_endZ, weight, 1000., 0., 1000.);
+  JSFillHist(beam_selec_str, beam_selec_str + "_Beam_alt_len_" + pi_type_str, evt.reco_beam_alt_len, weight, 1000., 0., 1000.);
+  JSFillHist(beam_selec_str, beam_selec_str + "_Beam_P_beam_inst_" + pi_type_str, P_beam_inst, weight, 2000., 0., 2000.);
+  JSFillHist(beam_selec_str, beam_selec_str + "_Beam_chi2_proton_" + pi_type_str, chi2_proton, weight, 10000., 0., 1000.);
+  JSFillHist(beam_selec_str, beam_selec_str + "_Beam_trk_len_ratio_" + pi_type_str, trk_len_ratio, weight, 1000., 0., 10.);
+  JSFillHist(beam_selec_str, beam_selec_str + "_Beam_KE_ff_" + pi_type_str, KE_ff_reco, weight, 2000., 0., 2000.);
+  JSFillHist(beam_selec_str, beam_selec_str + "_Beam_KE_end_" + pi_type_str, KE_end_reco, weight, 2000., 0., 2000.);
 
-    double this_alt_length = (*evt.reco_beam_resRange_SCE).at(0) - (*evt.reco_beam_resRange_SCE).at(skip_N_hits);
-    //cout << "this_alt_length : " << this_alt_length << endl;
-    this_KE_BB = map_BB[211]->KEAtLength(KE_ff_reco, this_alt_length);
-    
-    double Length_HypFit_Gaussian = Fit_HypTrkLength_Gaussian(this_dEdx_vec, this_range_vec, 211, false, true);
-    double Length_HypFit_Likelihood = Fit_HypTrkLength_Likelihood(this_dEdx_vec, this_range_vec, 211, false, true);
-    double KE_HypFit_Gaussian = -9999.;
-    double KE_HypFit_Likelihood = -9999.;
-    //cout << "this_KE_BB : " << this_KE_BB << "\tthis_N_hits\t" << this_N_hits << endl;
-    if(Length_HypFit_Gaussian > 0.){
-      KE_HypFit_Gaussian = map_BB[211] -> KEFromRangeSpline(Length_HypFit_Gaussian);
-      //double this_res = (this_KE_BB - KE_HypFit_Gaussian) / KE_HypFit_Gaussian;
-      //cout << "KE_HypFit_Gaussian : " << KE_HypFit_Gaussian << "\tRes\t" << this_res << endl;
-    }
-    if(Length_HypFit_Likelihood > 0.){
-      KE_HypFit_Likelihood = map_BB[211] -> KEFromRangeSpline(Length_HypFit_Likelihood);
-      //double this_res= (this_KE_BB - KE_HypFit_Likelihood) / KE_HypFit_Likelihood;
-      //cout << "KE_HypFit_Likelihood : " << KE_HypFit_Likelihood << "\tRes\t" << this_res <<endl;
-    }
-
-    int N_hits_step = 30;
-    int N_hits_down = N_hits_step * (this_N_hits / N_hits_step);
-    int N_hits_up = N_hits_step * (this_N_hits / N_hits_step + 1);
-    TString N_hits_str = Form("Nhits%dto%d", N_hits_down, N_hits_up);
-
-    JSFillHist("Denom", "KE_beam_" + N_hits_str, this_KE_BB, 1., 1500., 0., 1500.);
-    if(Length_HypFit_Likelihood > 0.){
-      JSFillHist("Gaussian", "Gaussian_KE_fit_vs_KE_beam_" + N_hits_str, KE_HypFit_Gaussian, this_KE_BB, 1., 300., 0., 1500., 300., 0., 1500.);
-    }
-    if(Length_HypFit_Likelihood > 0.){
-      JSFillHist("Likelihood", "Likelihood_KE_fit_vs_KE_beam_" + N_hits_str, KE_HypFit_Likelihood, this_KE_BB, 1., 300., 0., 1500., 300., 0., 1500.);
-    }
-
-    this_dEdx_vec.clear();
-    this_range_vec.clear();
-    skip_N_hits++;
-    this_N_hits = total_N_hits - skip_N_hits;
-  }
-
+  /*
+  JSFillHist(beam_selec_str, beam_selec_str + "_Beam_startZ_over_sigma", Beam_startZ_over_sigma, weight, 2000., -10., 10.);
+  JSFillHist(beam_selec_str, beam_selec_str + "_Beam_startZ_over_sigma_" + pi_type_str, Beam_startZ_over_sigma, weight, 2000., -10., 10.);
+  JSFillHist(beam_selec_str, beam_selec_str + "_Beam_delta_X_spec_TPC_over_sigma_" + pi_type_str, Beam_delta_X_over_sigma, weight, 2000., -10., 10.);
+  JSFillHist(beam_selec_str, beam_selec_str + "_Beam_delta_Y_spec_TPC_over_sigma_" + pi_type_str, Beam_delta_Y_over_sigma, weight, 2000., -10., 10.);
+  */
 }
 
-void PionQE::Run_Daughter(const vector<Daughter>& pions){
+void PionQE::Run_Daughter(TString daughter_sec_str, const vector<Daughter>& daughters){
 
-  for(unsigned int i_pion = 0; i_pion < pions.size(); i_pion++){
-    Daughter this_daughter = pions.at(i_pion);
+  JSFillHist(daughter_sec_str, "N_daughters", daughters.size(), 1., 10., -0.5, 9.5);
+  int N_true_proton_PID = 0;
+  int N_true_piplus_PID	= 0;
+  int N_true_piminus_PID = 0;
+  for(unsigned int i = 0; i < daughters.size(); i++){
+    Daughter this_daughter = daughters.at(i);
+    double this_trklen = this_daughter.allTrack_alt_len();
+    double this_trkscore = this_daughter.PFP_trackScore();
     double this_chi2_pion = Particle_chi2(this_daughter.allTrack_calibrated_dEdX_SCE(), this_daughter.allTrack_resRange_SCE(), 211);
-    JSFillHist("Daughter_pion", "Daughter_pion_chi2_pion", this_chi2_pion, 1., 1000., 0., 1000.);
-    //cout << "this_daughter.PFP_true_byHits_startE() : " << this_daughter.PFP_true_byHits_startE() << endl;
-    JSFillHist("Daughter_pion", "Daughter_pion_true_start_KE_vs_chi2_pion", this_daughter.PFP_true_byHits_startE() * 1000. - M_pion, this_chi2_pion, 1., 400., 0., 2000., 100., 0., 100.); 
-
-    // == Select stopped pion
-    if(this_chi2_pion < 6.){
-      FitWithVectors(this_daughter.allTrack_calibrated_dEdX_SCE(), this_daughter.allTrack_resRange_SCE());
+    double this_chi2_proton = Particle_chi2(this_daughter.allTrack_calibrated_dEdX_SCE(), this_daughter.allTrack_resRange_SCE(), 2212);
+    JSFillHist(daughter_sec_str, "daughters_chi2_pion", this_chi2_pion, 1., 1000., 0., 1000.);
+    JSFillHist(daughter_sec_str, "daughters_chi2_proton", this_chi2_proton, 1., 1000., 0., 1000.);
+    JSFillHist(daughter_sec_str, "daughters_trkscore", this_trkscore, 1., 1000., 0., 1.);
+    JSFillHist(daughter_sec_str, "daughters_trklen", this_trklen, 1., 200., 0., 200.);
+    
+    if(!IsData){
+      int this_true_PDG = this_daughter.PFP_true_byHits_PDG();
+      JSFillHist(daughter_sec_str, Form("daughters_chi2_pion_truePDG%d", this_true_PDG), this_chi2_pion, 1., 1000., 0., 1000.);
+      JSFillHist(daughter_sec_str, Form("daughters_chi2_proton_truePDG%d", this_true_PDG), this_chi2_proton, 1., 1000., 0., 1000.);
+      JSFillHist(daughter_sec_str, Form("daughters_trkscore_truePDG%d", this_true_PDG), this_trkscore, 1., 1000., 0., 1.);
+      JSFillHist(daughter_sec_str, Form("daughters_trklen_truePDG%d", this_true_PDG), this_trklen, 1., 200., 0., 200.);
+      
+      if(this_daughter.PFP_true_byHits_PDG() == 2212) N_true_proton_PID++;
+      else if(this_daughter.PFP_true_byHits_PDG() == 211) N_true_piplus_PID++;
+      else if(this_daughter.PFP_true_byHits_PDG() == -211) N_true_piminus_PID++;
     }
   }
 
+  JSFillHist(daughter_sec_str, "N_true_proton_PID", N_true_proton_PID, 1., 10., -0.5, 9.5);
+  JSFillHist(daughter_sec_str, "N_true_piplus_PID", N_true_piplus_PID, 1., 10., -0.5, 9.5);
+  JSFillHist(daughter_sec_str, "N_true_piminus_PID", N_true_piminus_PID, 1., 10., -0.5, 9.5);
+  JSFillHist(daughter_sec_str, "N_true_piplus_PID_vs_N_true_proton_PID", N_true_piplus_PID, N_true_proton_PID, 1., 5., -0.5, 4.5, 5., -0.5, 4.5);
 }
 
-void PionQE::FitWithVectors(const vector<double>& dEdx, const vector<double>& range){
+void PionQE::TrueDaughterStudy(const vector<TrueDaughter>& true_daughters){
+  
+}
 
-  int total_N_hits = dEdx.size();
-  if(total_N_hits < 15) return;
+std::vector<Daughter> PionQE::SelectLoosePions(const vector<Daughter>& in){
 
-  int this_N_hits = total_N_hits;
-  int skip_N_hits = 0;
-
-  //cout << "range.at(0) : " << range.at(0) << ", range.at(total_N_hits - 1) : " << range.at(total_N_hits - 1) << endl;
-  double this_KE_BB = map_BB[211] -> KEFromRangeSpline(range.at(total_N_hits - 1));
-
-  while(this_N_hits > 15 && this_KE_BB > 0.1){
-    vector<double> this_dEdx_vec;
-    vector<double> this_range_vec;
-    this_N_hits = 0;
-    for(int i_hit = skip_N_hits; i_hit < total_N_hits; i_hit++){
-      this_dEdx_vec.push_back(dEdx.at(i_hit));
-      this_range_vec.push_back(range.at(i_hit));
-      this_N_hits++;
-    }
-
-    //double this_alt_length = range.at(total_N_hits - 1) - range.at(skip_N_hits);
-    //cout << "this_alt_length : " << this_alt_length << endl;
-    //this_KE_BB = map_BB[211]->KEAtLength(this_KE_BB, this_alt_length);
-
-    double Length_HypFit_Gaussian = Fit_HypTrkLength_Gaussian(this_dEdx_vec, this_range_vec, 211, false, true);
-    double Length_HypFit_Likelihood = Fit_HypTrkLength_Likelihood(this_dEdx_vec, this_range_vec, 211, false, true);
-    double KE_HypFit_Gaussian = -9999.;
-    double KE_HypFit_Likelihood = -9999.;
-    //cout << "this_KE_BB : " << this_KE_BB << "\tthis_N_hits\t" << this_N_hits << endl;
-    if(Length_HypFit_Gaussian > 0.){
-      KE_HypFit_Gaussian = map_BB[211] -> KEFromRangeSpline(Length_HypFit_Gaussian);
-    }
-    if(Length_HypFit_Likelihood > 0.){
-      KE_HypFit_Likelihood = map_BB[211] -> KEFromRangeSpline(Length_HypFit_Likelihood);
-    }
-
-    int N_hits_step = 30;
-    int N_hits_down = N_hits_step * (this_N_hits / N_hits_step);
-    int N_hits_up = N_hits_step * (this_N_hits / N_hits_step + 1);
-    TString N_hits_str = Form("Nhits%dto%d", N_hits_down, N_hits_up);
-
-    JSFillHist("Denom", "KE_beam_" + N_hits_str, this_KE_BB, 1., 1500., 0., 1500.);
-    if(Length_HypFit_Likelihood > 0.){
-      JSFillHist("Gaussian", "Gaussian_KE_fit_vs_KE_BB_" + N_hits_str, KE_HypFit_Gaussian, this_KE_BB, 1., 300., 0., 1500., 300., 0., 1500.);
-    }
-    if(Length_HypFit_Likelihood > 0.){
-      JSFillHist("Likelihood", "Likelihood_KE_fit_vs_KE_BB_" + N_hits_str, KE_HypFit_Likelihood, this_KE_BB, 1., 300., 0., 1500., 300., 0., 1500.);
-    }
-
-    this_dEdx_vec.clear();
-    this_range_vec.clear();
-    skip_N_hits++;
-    this_N_hits = total_N_hits - skip_N_hits;
+  vector<Daughter> out;
+  double cut_trackScore = 0.5;
+  double cut_chi2_proton = 60.;
+  double cut_trk_len_upper = 180.;
+  double cut_trk_len_lower = 10.;
+  for(unsigned int i = 0; i < in.size(); i++){
+    Daughter this_in = in.at(i);
+    double this_chi2 = this_in.allTrack_Chi2_proton() / this_in.allTrack_Chi2_ndof();
+    if(this_in.PFP_trackScore() > cut_trackScore && this_chi2 > cut_chi2_proton && this_in.allTrack_alt_len() < cut_trk_len_upper && this_in.allTrack_alt_len() > cut_trk_len_lower) out.push_back(this_in);
   }
+  return out;
+}
+
+std::vector<Daughter> PionQE::SelectPions_trkscore(const vector<Daughter>& in, double cut_trackScore){
+
+  vector<Daughter> out;
+  for(unsigned int i = 0; i < in.size(); i++){
+    Daughter this_in = in.at(i);
+    if(this_in.PFP_trackScore() > cut_trackScore) out.push_back(this_in);
+  }
+  return out;
+}
+
+std::vector<Daughter> PionQE::SelectPions_chi2(const vector<Daughter>& in, double cut_chi2_proton){
+
+  vector<Daughter> out;
+  for(unsigned int i = 0; i < in.size(); i++){
+    Daughter this_in = in.at(i);
+    double this_chi2 = this_in.allTrack_Chi2_proton() / this_in.allTrack_Chi2_ndof();
+    if(this_chi2 > cut_chi2_proton) out.push_back(this_in);
+  }
+  return out;
+}
+
+std::vector<Daughter> PionQE::SelectPions_trklen_upper(const vector<Daughter>& in, double cut_trk_len_upper){
+
+  vector<Daughter> out;
+  for(unsigned int i = 0; i < in.size(); i++){
+    Daughter this_in = in.at(i);
+    double this_chi2 = this_in.allTrack_Chi2_proton() / this_in.allTrack_Chi2_ndof();
+    if(this_in.allTrack_alt_len() < cut_trk_len_upper) out.push_back(this_in);
+  }
+  return out;
+}
+
+std::vector<Daughter> PionQE::SelectPions_trklen_lower(const vector<Daughter>& in, double cut_trk_len_lower){
+
+  vector<Daughter> out;
+  for(unsigned int i = 0; i < in.size(); i++){
+    Daughter this_in = in.at(i);
+    double this_chi2 = this_in.allTrack_Chi2_proton() / this_in.allTrack_Chi2_ndof();
+    if(this_in.allTrack_alt_len() > cut_trk_len_lower) out.push_back(this_in);
+  }
+  return out;
 }
 
 PionQE::PionQE(){
