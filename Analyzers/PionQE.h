@@ -10,13 +10,18 @@ class PionQE : public AnalyzerCore {
   void initializeAnalyzer();
   void executeEvent();
 
-  void Run_beam_dEdx_vector();
-  void Run_Daughter(const vector<Daughter>& pions);
-  void FitWithVectors(const vector<double>& dEdx, const vector<double>& range);
+  void FillBeamPlots(TString beam_selec_str, double weight);
+  void Run_Daughter(TString daughter_sec_str, const vector<Daughter>& daughters);
+  void TrueDaughterStudy(const vector<TrueDaughter>& true_daughters);
+
+  std::vector<Daughter> SelectLoosePions(const vector<Daughter>& in);
+  std::vector<Daughter> SelectPions_trkscore(const vector<Daughter>& in, double cut_trackScore);
+  std::vector<Daughter> SelectPions_chi2(const vector<Daughter>& in, double cut_chi2_proton);
+  std::vector<Daughter> SelectPions_trklen_upper(const vector<Daughter>& in, double cut_trk_len_upper);
+  std::vector<Daughter> SelectPions_trklen_lower(const vector<Daughter>& in, double cut_trk_len_lower);
 
   PionQE();
   ~PionQE();
-
 };
 
 #endif

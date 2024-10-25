@@ -137,7 +137,7 @@ void Secondary_proton_ana::executeEvent(){
   JSFillHist("Beam_N_cut_daughters", "Beam_N_cut_daughters", daughters_cut.size(), P_reweight, 10, -0.5, 9.5);
   JSFillHist("Beam_N_cut_daughters", "Beam_N_cut_daughters_" + p_type_str, daughters_cut.size(), P_reweight, 10, -0.5, 9.5);
 
-  Daughter_study(protons);
+  //Daughter_study(protons);
 
   return;
 }
@@ -167,7 +167,9 @@ void Secondary_proton_ana::FillBeamPlots(TString beam_selec_str, double weight){
   JSFillHist(beam_selec_str, "Beam_P_beam_inst", P_beam_inst, weight, 2000., 0., 2000.);
   JSFillHist(beam_selec_str, "Beam_costh", beam_costh, weight, 2000., -1., 1.);
   JSFillHist(beam_selec_str, "Beam_chi2_proton", chi2_proton, weight, 10000., 0., 1000.);
-
+  JSFillHist(beam_selec_str, "Beam_chi2_muon", chi2_muon, weight, 10000., 0., 1000.);
+  JSFillHist(beam_selec_str, "Beam_chi2_pion", chi2_pion, weight, 10000., 0., 1000.);
+  
   JSFillHist(beam_selec_str, "Beam_startX_" + p_type_str, evt.reco_beam_calo_startX, weight, 10000., -100., 900.);
   JSFillHist(beam_selec_str, "Beam_startY_" + p_type_str, evt.reco_beam_calo_startY, weight, 10000., -100., 900.);
   JSFillHist(beam_selec_str, "Beam_startZ_" + p_type_str, evt.reco_beam_calo_startZ, weight, 10000., -100., 900.);
