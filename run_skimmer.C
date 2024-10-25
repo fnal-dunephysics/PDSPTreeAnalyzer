@@ -6,8 +6,8 @@ void run_skimmer(){
   gSystem->Load("./lib/libAnalyzers.so");
   
   PionSkimTreeMaker m;
-  //m.MaxEvent = -1;
-  m.MaxEvent = 3000;
+  m.MaxEvent = -1;
+  //m.MaxEvent = 7000;
   //m.NSkipEvent = 0;
   //m.MaxEvent = m.NSkipEvent + 1000;
   m.LogEvery = 1000;
