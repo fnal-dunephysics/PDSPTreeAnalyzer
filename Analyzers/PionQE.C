@@ -178,10 +178,13 @@ void PionQE::Run_Daughter(TString daughter_sec_str, const vector<Daughter>& daug
     double this_trkscore = this_daughter.PFP_trackScore();
     double this_chi2_pion = Particle_chi2(this_daughter.allTrack_calibrated_dEdX_SCE(), this_daughter.allTrack_resRange_SCE(), 211);
     double this_chi2_proton = Particle_chi2(this_daughter.allTrack_calibrated_dEdX_SCE(), this_daughter.allTrack_resRange_SCE(), 2212);
+    double this_michelscore = 0;
+    if (this_daughter.allTrack_vertex_nHits()) this_michelscore = this_daughter.allTrack_vertex_michel_score()/this_daughter.allTrack_vertex_nHits();
     JSFillHist(daughter_sec_str, "daughters_chi2_pion", this_chi2_pion, 1., 1000., 0., 1000.);
     JSFillHist(daughter_sec_str, "daughters_chi2_proton", this_chi2_proton, 1., 1000., 0., 1000.);
     JSFillHist(daughter_sec_str, "daughters_trkscore", this_trkscore, 1., 1000., 0., 1.);
     JSFillHist(daughter_sec_str, "daughters_trklen", this_trklen, 1., 200., 0., 200.);
+    JSFillHist(daughter_sec_str, "daughters_michelscore", this_michelscore, 1., 1000., 0., 1.);
     
     if(!IsData){
       int this_true_PDG = this_daughter.PFP_true_byHits_PDG();
@@ -189,6 +192,7 @@ void PionQE::Run_Daughter(TString daughter_sec_str, const vector<Daughter>& daug
       JSFillHist(daughter_sec_str, Form("daughters_chi2_proton_truePDG%d", this_true_PDG), this_chi2_proton, 1., 1000., 0., 1000.);
       JSFillHist(daughter_sec_str, Form("daughters_trkscore_truePDG%d", this_true_PDG), this_trkscore, 1., 1000., 0., 1.);
       JSFillHist(daughter_sec_str, Form("daughters_trklen_truePDG%d", this_true_PDG), this_trklen, 1., 200., 0., 200.);
+      JSFillHist(daughter_sec_str, Form("daughters_michelscore_truePDG%d", this_true_PDG), this_michelscore, 1., 1000., 0., 1.);
       
       if(this_daughter.PFP_true_byHits_PDG() == 2212) N_true_proton_PID++;
       else if(this_daughter.PFP_true_byHits_PDG() == 211) N_true_piplus_PID++;
