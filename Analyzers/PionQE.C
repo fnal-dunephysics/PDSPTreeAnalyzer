@@ -10,7 +10,7 @@ void PionQE::initializeAnalyzer(){
 
 void PionQE::executeEvent(){
 
-  pi_type = GetPiParType();
+  pi_type = GetPi2ParType();
   pi_type_str = Form("%d", pi_type);
   FillHist("beam_cut_flow", 0.5, 1., 20, 0., 20.);
 
@@ -65,6 +65,11 @@ void PionQE::executeEvent(){
   Run_Daughter("AllRecoDaughters", daughters_all);
   Run_Daughter("LoosePions", loose_pions);
 
+  if (loose_pions.size() == 1){ //QE candidates
+    FillHist("beam_cut_flow", 9.5, 1., 20, 0., 20.);
+    FillBeamPlots("QE", P_reweight);
+  }
+  
   // == pion selection cutflow
   if(!IsData){
     int N_pion_nocut = 0;

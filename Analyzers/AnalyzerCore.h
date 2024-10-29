@@ -159,6 +159,7 @@ public:
   double chi2_muon;
   std::map< int, TProfile* > map_profile;
   int GetPiParType();
+  int GetPi2ParType();
   int pi_type = 0;
   TString pi_type_str = "";
   int GetPParType();
@@ -341,6 +342,35 @@ namespace pi{  const unsigned int nIntTypes = 9;
     kData,
     kPiInel,
     kPiElas,
+    kMuon,
+    kMIDcosmic,
+    kMIDp,
+    kMIDpi,
+    kMIDmu,
+    kMIDeg,
+    kMIDother
+  };
+}
+
+namespace pi2{  const unsigned int nIntTypes = 12;
+  const char intTypeName[nIntTypes+1][100] = {"Data",
+					      "PiElas",
+					      "PiQE",
+                                              "PiABS",
+                                              "PiCEX",
+					      "Muon",
+					      "misID:cosmic",
+					      "misID:p",
+					      "misID:pi",
+					      "misID:mu",
+					      "misID:e/#gamma",
+					      "misID:other"};
+  enum intType{
+    kData,
+    kPiElas,
+    kPiQE,
+    kPiABS,
+    kPiCEX,
     kMuon,
     kMIDcosmic,
     kMIDp,
