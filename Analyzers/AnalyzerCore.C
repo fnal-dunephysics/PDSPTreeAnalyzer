@@ -1,5 +1,6 @@
 #include "AnalyzerCore.h"
 #include "PDSPTree.h"
+#include "TLorentzVector.h"
 
 AnalyzerCore::AnalyzerCore(){
   MaxEvent = -1;
@@ -589,7 +590,7 @@ int AnalyzerCore::GetPi2ParType(){
         else if (pdg == 2112){
           ++nn;
         }
-        else if (pdg == -13){
+        else if (pdg == -13 || pdg == 13){
           ++nmup;
         }
       }
@@ -612,6 +613,61 @@ int AnalyzerCore::GetPi2ParType(){
   }
 
   return pi2::kMIDother;
+}
+
+int AnalyzerCore::GetPiTrueType(){
+
+  if (!evt.MC){
+    return pitrue::kOther;
+  }
+  else if (evt.true_beam_PDG == 211 && evt.true_beam_endZ > 0){
+    if ((*evt.true_beam_endProcess) == "pi+Inelastic"){
+      int npip = 0;
+      int npim = 0;
+      int npi0 = 0;
+      int np = 0;
+      int nn = 0;
+      int nmup = 0;
+      for (size_t i = 0; i<evt.true_beam_daughter_PDG->size(); ++i){
+        int pdg = evt.true_beam_daughter_PDG->at(i);
+        if (pdg == 211){
+          ++npip;
+        }
+        else if (pdg == -211){
+          ++npim;
+        }
+        else if (pdg == 111){
+          ++npi0;
+        }
+        else if (pdg == 2212){
+          ++np;
+        }
+        else if (pdg == 2112){
+          ++nn;
+        }
+        else if (pdg == -13 || pdg == 13){
+          ++nmup;
+        }
+      }
+      if (npip || npim){
+        return pitrue::kQE;
+      }
+      else if (npi0){
+        return pitrue::kCEX;
+      }
+      else if (nmup){
+        return pitrue::kElas;
+      }
+      else{
+        return pitrue::kABS;
+      }
+    }
+    else{      
+      return pitrue::kElas;
+    }
+  }
+
+  return pitrue::kOther;
 }
 
 int AnalyzerCore::GetPParType(){
@@ -2002,4 +2058,46 @@ void AnalyzerCore::WriteHist(){
     mapit->second->Write();
   }
 
+}
+
+void AnalyzerCore::CalTrueQEVars(){
+
+  if (pi_truetype != pitrue::kQE) return;
+
+  double Eb = 4;
+  TLorentzVector beam, pion, proton;
+
+  beam.SetPxPyPzE(evt.true_beam_endPx*1000,
+                  evt.true_beam_endPy*1000,
+                  evt.true_beam_endPz*1000,
+                  sqrt(pow(evt.true_beam_endP*1000,2)+M_pion*M_pion));
+
+  for (size_t i = 0; i<evt.true_beam_daughter_PDG->size(); ++i){
+    int pdg = evt.true_beam_daughter_PDG->at(i);
+    double px = evt.true_beam_daughter_startPx->at(i)*1000;
+    double py = evt.true_beam_daughter_startPy->at(i)*1000;
+    double pz = evt.true_beam_daughter_startPz->at(i)*1000;
+    double p = sqrt(px*px+py*py+pz*pz);
+
+    if (abs(pdg) == 211){
+      double E = sqrt(p*p+M_pion*M_pion);
+      if (E>pion.E()){
+        pion.SetPxPyPzE(px,py,pz,E);
+      }
+    }
+    if (pdg == 2212){
+      double E = sqrt(p*p+M_proton*M_proton);
+      if (E>proton.E()){
+        proton.SetPxPyPzE(px,py,pz,E);
+      }
+    }
+  }
+
+  if (beam.E() && pion.E()){
+    QE_Q2 = -(beam - pion).Mag2()*1e-6; //GeV^2
+    QE_KEPi = pion.E() - M_pion;
+    QE_AngPi = pion.Vect().Angle(beam.Vect())*180/TMath::Pi();
+    QE_nu = beam.E() - pion.E();
+    QE_EQE = (pow(M_proton,2)-pow(M_proton-Eb,2)-pow(M_pion,2)+2*(M_proton-Eb)*pion.E())/2/(M_proton-Eb-pion.E()+pion.Vect()*beam.Vect()/beam.Vect().Mag());
+  }
 }

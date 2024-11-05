@@ -165,7 +165,9 @@ public:
   int GetPParType();
   int p_type = 0;
   TString p_type_str = "";
-
+  int pi_truetype = 0;
+  int GetPiTrueType();
+  
   //==================
   // Event Selections
   //==================
@@ -215,6 +217,16 @@ public:
   double Get_EQE_NC_Proton(double P_proton, double cos_theta, double E_binding, int which_sol);
   bool Is_EQE(double window);
 
+  //==================
+  // QE
+  //==================
+  double QE_Q2 = -999;
+  double QE_KEPi = -999;
+  double QE_AngPi = -999;
+  double QE_nu = -999;
+  double QE_EQE = -999;
+  void CalTrueQEVars();
+  
   //==================
   // MCS
   //==================
@@ -378,6 +390,21 @@ namespace pi2{  const unsigned int nIntTypes = 12;
     kMIDmu,
     kMIDeg,
     kMIDother
+  };
+}
+
+namespace pitrue{  const unsigned int nIntTypes = 5;
+  const char intTypeName[nIntTypes+1][100] = {"Elas",
+					      "PiQE",
+                                              "PiABS",
+                                              "PiCEX",
+					      "Other"};
+  enum intType{
+    kElas,
+    kQE,
+    kABS,
+    kCEX,
+    kOther
   };
 }
 

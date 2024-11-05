@@ -14,6 +14,10 @@ void PionQE::executeEvent(){
   pi_type_str = Form("%d", pi_type);
   FillHist("beam_cut_flow", 0.5, 1., 20, 0., 20.);
 
+  pi_truetype = GetPiTrueType();
+  CalTrueQEVars();
+  if (pi_truetype == pitrue::kQE) FillQEPlots("QE_All");
+  
   // -- 1. Beam instruments
   if(!PassBeamScraperCut()) return;
   FillHist("beam_cut_flow", 1.5, 1., 20, 0., 20.);
@@ -43,19 +47,23 @@ void PionQE::executeEvent(){
   if(!PassCaloSizeCut()) return;
   FillHist("beam_cut_flow", 5.5, 1., 20, 0., 20.);
   FillBeamPlots("Beam_CaloSize", P_reweight);
+  if (pi_type == pi2::kPiQE) FillQEPlots("QE_CaloSize");
 
   if(!PassAPA3Cut()) return;
   FillHist("beam_cut_flow", 6.5, 1., 20, 0., 20.);
   FillBeamPlots("Beam_APA3", P_reweight);
+  if (pi_type == pi2::kPiQE) FillQEPlots("QE_APA3");
 
   if(!PassMichelScoreCut()) return;
   FillHist("beam_cut_flow", 7.5, 1., 20, 0., 20.);
   FillBeamPlots("Beam_MichelScore", P_reweight);
+  if (pi_type == pi2::kPiQE) FillQEPlots("QE_MichelScore");
 
   if(KE_end_reco < 100.) return;
   FillHist("beam_cut_flow", 8.5, 1., 20, 0., 20.);
   FillBeamPlots("Beam_KE_end", P_reweight);
-  
+  if (pi_type == pi2::kPiQE) FillQEPlots("QE_KE_end");
+
   // == Functions to study beam
   //Run_beam_dEdx_vector();
  
@@ -67,7 +75,8 @@ void PionQE::executeEvent(){
 
   if (loose_pions.size() == 1){ //QE candidates
     FillHist("beam_cut_flow", 9.5, 1., 20, 0., 20.);
-    FillBeamPlots("QE", P_reweight);
+    FillBeamPlots("Beam_QE", P_reweight);
+    if (pi_type == pi2::kPiQE) FillQEPlots("QE_QE");
   }
   
   // == pion selection cutflow
@@ -169,6 +178,15 @@ void PionQE::FillBeamPlots(TString beam_selec_str, double weight){
   JSFillHist(beam_selec_str, beam_selec_str + "_Beam_delta_X_spec_TPC_over_sigma_" + pi_type_str, Beam_delta_X_over_sigma, weight, 2000., -10., 10.);
   JSFillHist(beam_selec_str, beam_selec_str + "_Beam_delta_Y_spec_TPC_over_sigma_" + pi_type_str, Beam_delta_Y_over_sigma, weight, 2000., -10., 10.);
   */
+}
+
+void PionQE::FillQEPlots(TString beam_selec_str){
+
+  JSFillHist(beam_selec_str, beam_selec_str + "_QE_Q2", QE_Q2, 1.0, 100, 0., 1.);
+  JSFillHist(beam_selec_str, beam_selec_str + "_QE_KEPi", QE_KEPi, 1.0, 100, 0., 500.);
+  JSFillHist(beam_selec_str, beam_selec_str + "_QE_AngPi", QE_AngPi, 1.0, 20, 0., 180.);
+  JSFillHist(beam_selec_str, beam_selec_str + "_QE_nu", QE_nu, 1.0, 100, 0., 500.);
+  JSFillHist(beam_selec_str, beam_selec_str + "_QE_EQE", QE_EQE, 1.0, 100, 0., 700.);
 }
 
 void PionQE::Run_Daughter(TString daughter_sec_str, const vector<Daughter>& daughters){

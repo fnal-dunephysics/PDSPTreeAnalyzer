@@ -11,6 +11,7 @@ class PionQE : public AnalyzerCore {
   void executeEvent();
 
   void FillBeamPlots(TString beam_selec_str, double weight);
+  void FillQEPlots(TString beam_selec_str);
   void Run_Daughter(TString daughter_sec_str, const vector<Daughter>& daughters);
   void TrueDaughterStudy(const vector<TrueDaughter>& true_daughters);
 
