@@ -221,7 +221,8 @@ public:
   // QE
   //==================
   double QE_Q2 = -999;
-  double QE_KEPi = -999;
+  double QE_KEPi0 = -999;
+  double QE_KEPi1 = -999;
   double QE_AngPi = -999;
   double QE_nu = -999;
   double QE_EQE = -999;

@@ -2095,7 +2095,8 @@ void AnalyzerCore::CalTrueQEVars(){
 
   if (beam.E() && pion.E()){
     QE_Q2 = -(beam - pion).Mag2()*1e-6; //GeV^2
-    QE_KEPi = pion.E() - M_pion;
+    QE_KEPi0 = beam.E() - M_pion;
+    QE_KEPi1 = pion.E() - M_pion;
     QE_AngPi = pion.Vect().Angle(beam.Vect())*180/TMath::Pi();
     QE_nu = beam.E() - pion.E();
     QE_EQE = (pow(M_proton,2)-pow(M_proton-Eb,2)-pow(M_pion,2)+2*(M_proton-Eb)*pion.E())/2/(M_proton-Eb-pion.E()+pion.Vect()*beam.Vect()/beam.Vect().Mag());

@@ -183,7 +183,8 @@ void PionQE::FillBeamPlots(TString beam_selec_str, double weight){
 void PionQE::FillQEPlots(TString beam_selec_str){
 
   JSFillHist(beam_selec_str, beam_selec_str + "_QE_Q2", QE_Q2, 1.0, 100, 0., 1.);
-  JSFillHist(beam_selec_str, beam_selec_str + "_QE_KEPi", QE_KEPi, 1.0, 100, 0., 500.);
+  JSFillHist(beam_selec_str, beam_selec_str + "_QE_KEPi0", QE_KEPi0, 1.0, 100, 0., 500.);
+  JSFillHist(beam_selec_str, beam_selec_str + "_QE_KEPi1", QE_KEPi1, 1.0, 100, 0., 500.);
   JSFillHist(beam_selec_str, beam_selec_str + "_QE_AngPi", QE_AngPi, 1.0, 20, 0., 180.);
   JSFillHist(beam_selec_str, beam_selec_str + "_QE_nu", QE_nu, 1.0, 100, 0., 500.);
   JSFillHist(beam_selec_str, beam_selec_str + "_QE_EQE", QE_EQE, 1.0, 100, 0., 700.);
