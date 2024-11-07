@@ -216,17 +216,6 @@ public:
   double Get_EQE_NC_Pion(double P_pion, double cos_theta, double E_binding, int which_sol);
   double Get_EQE_NC_Proton(double P_proton, double cos_theta, double E_binding, int which_sol);
   bool Is_EQE(double window);
-
-  //==================
-  // QE
-  //==================
-  double QE_Q2 = -999;
-  double QE_KEPi0 = -999;
-  double QE_KEPi1 = -999;
-  double QE_AngPi = -999;
-  double QE_nu = -999;
-  double QE_EQE = -999;
-  void CalTrueQEVars();
   
   //==================
   // MCS
