@@ -214,7 +214,15 @@ void PionQE::FillQERecoPlots(TString beam_selec_str, double weight){
   JSFillHist(beam_selec_str, beam_selec_str + "_QEreco_AngPi_" + pi_type_str, recoQE_AngPi, weight, 20., 0., 180.);
   JSFillHist(beam_selec_str, beam_selec_str + "_QEreco_nu_" + pi_type_str, recoQE_nu, weight, 20., 0., 500.);
   JSFillHist(beam_selec_str, beam_selec_str + "_QEreco_dEQE_" + pi_type_str, recoQE_EQE-recoQE_KEPi0-M_pion, weight, 20., -500., 500.);
-
+  if (recoQE_Q2>0.05 && recoQE_Q2<0.15){
+    JSFillHist(beam_selec_str, beam_selec_str + "_QEreco_nu1_" + pi_type_str, recoQE_nu, weight, 20., 0., 500.);
+  }
+  if (recoQE_Q2>0.15 && recoQE_Q2<0.25){
+    JSFillHist(beam_selec_str, beam_selec_str + "_QEreco_nu2_" + pi_type_str, recoQE_nu, weight, 20., 0., 500.);
+  }
+  if (recoQE_Q2>0.25 && recoQE_Q2<0.35){
+    JSFillHist(beam_selec_str, beam_selec_str + "_QEreco_nu3_" + pi_type_str, recoQE_nu, weight, 20., 0., 500.);
+  }
 }
 
 void PionQE::Run_Daughter(TString daughter_sec_str, const vector<Daughter>& daughters){
