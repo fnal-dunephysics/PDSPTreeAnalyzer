@@ -566,6 +566,11 @@ void PionStudy::truthstudy(){
           proton.SetPxPyPzE(px,py,pz,E);
         }
       }
+      if (pdg == 2112 && evt.true_beam_daughter_startZ->at(i) > 0 && evt.true_beam_daughter_endZ->at(i) > 0){
+        //cout<<p<<" "<<evt.true_beam_daughter_startZ->at(i)<<" "<<evt.true_beam_daughter_endZ->at(i)<<endl;
+        double path = sqrt(pow(evt.true_beam_daughter_endX->at(i)-evt.true_beam_daughter_startX->at(i),2)+pow(evt.true_beam_daughter_endY->at(i)-evt.true_beam_daughter_startY->at(i),2)+pow(evt.true_beam_daughter_endZ->at(i)-evt.true_beam_daughter_startZ->at(i),2));
+        JSFillHist("KI", "npath", p, path, 1, 100, 0, 1000, 100,0, 100);
+      }
     }
     if (npip || npim){
       type = 0; //QE
