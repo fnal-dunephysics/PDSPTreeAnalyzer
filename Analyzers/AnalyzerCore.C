@@ -535,6 +535,140 @@ int AnalyzerCore::GetPiParType(){
   return pi::kMIDother;
 }
 
+int AnalyzerCore::GetPi2ParType(){
+
+  if (!evt.MC){
+    return pi2::kData;
+  }
+  else if (!evt.reco_beam_true_byE_matched){ // the true beam track is not selected
+    if (evt.reco_beam_true_byE_origin == 2) {
+      return pi2::kMIDcosmic;
+    }
+    else if (std::abs(evt.reco_beam_true_byE_PDG) == 211){ // the selected track is a pion (but not true beam pion, so it is a secondary pion)
+      return pi2::kMIDpi;
+    }
+    else if (evt.reco_beam_true_byE_PDG == 2212){
+      return pi2::kMIDp;
+    }
+    else if (std::abs(evt.reco_beam_true_byE_PDG) == 13){
+      return pi2::kMIDmu;
+    }
+    else if (std::abs(evt.reco_beam_true_byE_PDG) == 11 ||
+             evt.reco_beam_true_byE_PDG == 22){
+      return pi2::kMIDeg;
+    }
+    else {
+      return pi2::kMIDother;
+    }
+  }
+  else if (evt.true_beam_PDG == -13){
+    return pi2::kMuon;
+  }
+  else if (evt.true_beam_PDG == 211){
+    if ((*evt.true_beam_endProcess) == "pi+Inelastic"){
+      int npip = 0;
+      int npim = 0;
+      int npi0 = 0;
+      int np = 0;
+      int nn = 0;
+      int nmup = 0;
+      for (size_t i = 0; i<evt.true_beam_daughter_PDG->size(); ++i){
+        int pdg = evt.true_beam_daughter_PDG->at(i);
+        if (pdg == 211){
+          ++npip;
+        }
+        else if (pdg == -211){
+          ++npim;
+        }
+        else if (pdg == 111){
+          ++npi0;
+        }
+        else if (pdg == 2212){
+          ++np;
+        }
+        else if (pdg == 2112){
+          ++nn;
+        }
+        else if (pdg == -13 || pdg == 13){
+          ++nmup;
+        }
+      }
+      if (npip || npim){
+        return pi2::kPiQE;
+      }
+      else if (npi0){
+        return pi2::kPiCEX;
+      }
+      else if (nmup){
+        return pi2::kPiElas;
+      }
+      else{
+        return pi2::kPiABS;
+      }
+    }
+    else{      
+      return pi2::kPiElas;
+    }
+  }
+
+  return pi2::kMIDother;
+}
+
+int AnalyzerCore::GetPiTrueType(){
+
+  if (!evt.MC){
+    return pitrue::kOther;
+  }
+  else if (evt.true_beam_PDG == 211 && evt.true_beam_endZ > 0){
+    if ((*evt.true_beam_endProcess) == "pi+Inelastic"){
+      int npip = 0;
+      int npim = 0;
+      int npi0 = 0;
+      int np = 0;
+      int nn = 0;
+      int nmup = 0;
+      for (size_t i = 0; i<evt.true_beam_daughter_PDG->size(); ++i){
+        int pdg = evt.true_beam_daughter_PDG->at(i);
+        if (pdg == 211){
+          ++npip;
+        }
+        else if (pdg == -211){
+          ++npim;
+        }
+        else if (pdg == 111){
+          ++npi0;
+        }
+        else if (pdg == 2212){
+          ++np;
+        }
+        else if (pdg == 2112){
+          ++nn;
+        }
+        else if (pdg == -13 || pdg == 13){
+          ++nmup;
+        }
+      }
+      if (npip || npim){
+        return pitrue::kQE;
+      }
+      else if (npi0){
+        return pitrue::kCEX;
+      }
+      else if (nmup){
+        return pitrue::kElas;
+      }
+      else{
+        return pitrue::kABS;
+      }
+    }
+    else{      
+      return pitrue::kElas;
+    }
+  }
+
+  return pitrue::kOther;
+}
+
 int AnalyzerCore::GetPParType(){
 
   if (!evt.MC){

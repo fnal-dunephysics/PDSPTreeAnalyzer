@@ -548,18 +548,6 @@ void PionStudy::truthstudy(){
       else if (pdg == -13){
         ++nmup;
       }
-      if (npip || npim){
-        type = 0; //QE
-      }
-      else if (npi0){
-        type = 1; //CEX
-      }
-      else if (nmup){
-        type = 2; //DK
-      }
-      else{
-        type = 3; //Abs
-      }
       double px = evt.true_beam_daughter_startPx->at(i)*1000;
       double py = evt.true_beam_daughter_startPy->at(i)*1000;
       double pz = evt.true_beam_daughter_startPz->at(i)*1000;
@@ -578,7 +566,25 @@ void PionStudy::truthstudy(){
           proton.SetPxPyPzE(px,py,pz,E);
         }
       }
+      if (pdg == 2112 && evt.true_beam_daughter_startZ->at(i) > 0 && evt.true_beam_daughter_endZ->at(i) > 0){
+        //cout<<p<<" "<<evt.true_beam_daughter_startZ->at(i)<<" "<<evt.true_beam_daughter_endZ->at(i)<<endl;
+        double path = sqrt(pow(evt.true_beam_daughter_endX->at(i)-evt.true_beam_daughter_startX->at(i),2)+pow(evt.true_beam_daughter_endY->at(i)-evt.true_beam_daughter_startY->at(i),2)+pow(evt.true_beam_daughter_endZ->at(i)-evt.true_beam_daughter_startZ->at(i),2));
+        JSFillHist("KI", "npath", p, path, 1, 100, 0, 1000, 100,0, 100);
+      }
     }
+    if (npip || npim){
+      type = 0; //QE
+    }
+    else if (npi0){
+      type = 1; //CEX
+    }
+    else if (nmup){
+      type = 2; //DK
+    }
+    else{
+      type = 3; //Abs
+    }
+    
     if (beam.E() && pion.E()){
       double Eqe = (pow(mp,2)-pow(mp-Eb,2)-pow(mpi,2)+2*(mp-Eb)*pion.E())/2/(mp-Eb-pion.E()+pion.Vect()*beam.Vect()/beam.Vect().Mag());
       double Q2 = -(beam - pion).Mag2()*1e-6; //GeV^2

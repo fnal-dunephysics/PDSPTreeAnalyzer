@@ -1,4 +1,5 @@
 #include "PionQE.h"
+#include "TLorentzVector.h"
 
 void PionQE::initializeAnalyzer(){
 
@@ -10,10 +11,14 @@ void PionQE::initializeAnalyzer(){
 
 void PionQE::executeEvent(){
 
-  pi_type = GetPiParType();
+  pi_type = GetPi2ParType();
   pi_type_str = Form("%d", pi_type);
   FillHist("beam_cut_flow", 0.5, 1., 20, 0., 20.);
 
+  pi_truetype = GetPiTrueType();
+  CalTrueQEVars();
+  if (pi_truetype == pitrue::kQE) FillQEPlots("QE_All");
+  
   // -- 1. Beam instruments
   if(!PassBeamScraperCut()) return;
   FillHist("beam_cut_flow", 1.5, 1., 20, 0., 20.);
@@ -43,19 +48,23 @@ void PionQE::executeEvent(){
   if(!PassCaloSizeCut()) return;
   FillHist("beam_cut_flow", 5.5, 1., 20, 0., 20.);
   FillBeamPlots("Beam_CaloSize", P_reweight);
+  if (pi_type == pi2::kPiQE) FillQEPlots("QE_CaloSize");
 
   if(!PassAPA3Cut()) return;
   FillHist("beam_cut_flow", 6.5, 1., 20, 0., 20.);
   FillBeamPlots("Beam_APA3", P_reweight);
+  if (pi_type == pi2::kPiQE) FillQEPlots("QE_APA3");
 
   if(!PassMichelScoreCut()) return;
   FillHist("beam_cut_flow", 7.5, 1., 20, 0., 20.);
   FillBeamPlots("Beam_MichelScore", P_reweight);
+  if (pi_type == pi2::kPiQE) FillQEPlots("QE_MichelScore");
 
   if(KE_end_reco < 100.) return;
   FillHist("beam_cut_flow", 8.5, 1., 20, 0., 20.);
   FillBeamPlots("Beam_KE_end", P_reweight);
-  
+  if (pi_type == pi2::kPiQE) FillQEPlots("QE_KE_end");
+
   // == Functions to study beam
   //Run_beam_dEdx_vector();
  
@@ -65,6 +74,18 @@ void PionQE::executeEvent(){
   Run_Daughter("AllRecoDaughters", daughters_all);
   Run_Daughter("LoosePions", loose_pions);
 
+  if (loose_pions.size() == 1){ //QE candidates
+    FillHist("beam_cut_flow", 9.5, 1., 20, 0., 20.);
+    FillBeamPlots("Beam_QE", P_reweight);
+    if (pi_type == pi2::kPiQE){
+      FillQEPlots("QE_QE");
+    }
+    CalRecoQEVars(loose_pions[0]);
+    if (recoQE_KEPi1>0){
+      FillQERecoPlots("QE_QE", P_reweight);
+    }
+  }
+  
   // == pion selection cutflow
   if(!IsData){
     int N_pion_nocut = 0;
@@ -166,6 +187,44 @@ void PionQE::FillBeamPlots(TString beam_selec_str, double weight){
   */
 }
 
+void PionQE::FillQEPlots(TString beam_selec_str){
+
+  JSFillHist(beam_selec_str, beam_selec_str + "_QE_Q2", QE_Q2, 1.0, 20, 0., 1.);
+  JSFillHist(beam_selec_str, beam_selec_str + "_QE_KEPi0", QE_KEPi0, 1.0, 20, 0., 500.);
+  JSFillHist(beam_selec_str, beam_selec_str + "_QE_KEPi1", QE_KEPi1, 1.0, 20, 0., 500.);
+  JSFillHist(beam_selec_str, beam_selec_str + "_QE_AngPi", QE_AngPi, 1.0, 20, 0., 180.);
+  JSFillHist(beam_selec_str, beam_selec_str + "_QE_nu", QE_nu, 1.0, 20, 0., 500.);
+  JSFillHist(beam_selec_str, beam_selec_str + "_QE_EQE", QE_EQE, 1.0, 20, 0., 700.);
+  JSFillHist(beam_selec_str, beam_selec_str + "_QE_nuQ2", QE_Q2, QE_nu, 1.0, 100, 0., 1., 100, 0., 500.);
+}
+
+void PionQE::FillQERecoPlots(TString beam_selec_str, double weight){
+
+  if (pi_type == pi2::kPiQE){
+    JSFillHist(beam_selec_str, beam_selec_str + "_QE2D_Q2", QE_Q2, recoQE_Q2, 1.0, 20, 0., 0.6,20,0.,0.6);
+    JSFillHist(beam_selec_str, beam_selec_str + "_QE2D_KEPi0", QE_KEPi0, recoQE_KEPi0, 1.0, 20, 0., 500., 20, 0., 500.);
+    JSFillHist(beam_selec_str, beam_selec_str + "_QE2D_KEPi1", QE_KEPi1, recoQE_KEPi1, 1.0, 20, 0., 500., 20, 0., 500.);
+    JSFillHist(beam_selec_str, beam_selec_str + "_QE2D_AngPi", QE_AngPi, recoQE_AngPi, 1.0, 20, 0., 180., 20, 0., 180.);
+    JSFillHist(beam_selec_str, beam_selec_str + "_QE2D_nu", QE_nu, recoQE_nu, 1.0, 20, 0., 500., 20, 0., 500.);
+    JSFillHist(beam_selec_str, beam_selec_str + "_QE2D_EQE", QE_EQE, recoQE_EQE, 1.0, 20, 0., 700., 20, 0., 700.);
+  }
+  JSFillHist(beam_selec_str, beam_selec_str + "_QEreco_Q2_" + pi_type_str, recoQE_Q2, weight, 20., 0., 1.);
+  JSFillHist(beam_selec_str, beam_selec_str + "_QEreco_KEPi0_" + pi_type_str, recoQE_KEPi0, weight, 20., 0., 500.);
+  JSFillHist(beam_selec_str, beam_selec_str + "_QEreco_KEPi1_" + pi_type_str, recoQE_KEPi1, weight, 20., 0., 500.);
+  JSFillHist(beam_selec_str, beam_selec_str + "_QEreco_AngPi_" + pi_type_str, recoQE_AngPi, weight, 20., 0., 180.);
+  JSFillHist(beam_selec_str, beam_selec_str + "_QEreco_nu_" + pi_type_str, recoQE_nu, weight, 20., 0., 500.);
+  JSFillHist(beam_selec_str, beam_selec_str + "_QEreco_dEQE_" + pi_type_str, recoQE_EQE-recoQE_KEPi0-M_pion, weight, 20., -500., 500.);
+  if (recoQE_Q2>0.05 && recoQE_Q2<0.15){
+    JSFillHist(beam_selec_str, beam_selec_str + "_QEreco_nu1_" + pi_type_str, recoQE_nu, weight, 20., 0., 500.);
+  }
+  if (recoQE_Q2>0.15 && recoQE_Q2<0.25){
+    JSFillHist(beam_selec_str, beam_selec_str + "_QEreco_nu2_" + pi_type_str, recoQE_nu, weight, 20., 0., 500.);
+  }
+  if (recoQE_Q2>0.25 && recoQE_Q2<0.35){
+    JSFillHist(beam_selec_str, beam_selec_str + "_QEreco_nu3_" + pi_type_str, recoQE_nu, weight, 20., 0., 500.);
+  }
+}
+
 void PionQE::Run_Daughter(TString daughter_sec_str, const vector<Daughter>& daughters){
 
   JSFillHist(daughter_sec_str, "N_daughters", daughters.size(), 1., 10., -0.5, 9.5);
@@ -178,10 +237,13 @@ void PionQE::Run_Daughter(TString daughter_sec_str, const vector<Daughter>& daug
     double this_trkscore = this_daughter.PFP_trackScore();
     double this_chi2_pion = Particle_chi2(this_daughter.allTrack_calibrated_dEdX_SCE(), this_daughter.allTrack_resRange_SCE(), 211);
     double this_chi2_proton = Particle_chi2(this_daughter.allTrack_calibrated_dEdX_SCE(), this_daughter.allTrack_resRange_SCE(), 2212);
+    double this_michelscore = 0;
+    if (this_daughter.allTrack_vertex_nHits()) this_michelscore = this_daughter.allTrack_vertex_michel_score()/this_daughter.allTrack_vertex_nHits();
     JSFillHist(daughter_sec_str, "daughters_chi2_pion", this_chi2_pion, 1., 1000., 0., 1000.);
     JSFillHist(daughter_sec_str, "daughters_chi2_proton", this_chi2_proton, 1., 1000., 0., 1000.);
     JSFillHist(daughter_sec_str, "daughters_trkscore", this_trkscore, 1., 1000., 0., 1.);
     JSFillHist(daughter_sec_str, "daughters_trklen", this_trklen, 1., 200., 0., 200.);
+    JSFillHist(daughter_sec_str, "daughters_michelscore", this_michelscore, 1., 1000., 0., 1.);
     
     if(!IsData){
       int this_true_PDG = this_daughter.PFP_true_byHits_PDG();
@@ -189,6 +251,7 @@ void PionQE::Run_Daughter(TString daughter_sec_str, const vector<Daughter>& daug
       JSFillHist(daughter_sec_str, Form("daughters_chi2_proton_truePDG%d", this_true_PDG), this_chi2_proton, 1., 1000., 0., 1000.);
       JSFillHist(daughter_sec_str, Form("daughters_trkscore_truePDG%d", this_true_PDG), this_trkscore, 1., 1000., 0., 1.);
       JSFillHist(daughter_sec_str, Form("daughters_trklen_truePDG%d", this_true_PDG), this_trklen, 1., 200., 0., 200.);
+      JSFillHist(daughter_sec_str, Form("daughters_michelscore_truePDG%d", this_true_PDG), this_michelscore, 1., 1000., 0., 1.);
       
       if(this_daughter.PFP_true_byHits_PDG() == 2212) N_true_proton_PID++;
       else if(this_daughter.PFP_true_byHits_PDG() == 211) N_true_piplus_PID++;
@@ -262,6 +325,76 @@ std::vector<Daughter> PionQE::SelectPions_trklen_lower(const vector<Daughter>& i
     if(this_in.allTrack_alt_len() > cut_trk_len_lower) out.push_back(this_in);
   }
   return out;
+}
+
+void PionQE::CalTrueQEVars(){
+
+  if (pi_truetype != pitrue::kQE) return;
+
+  double Eb = 4;
+  TLorentzVector beam, pion, proton;
+
+  beam.SetPxPyPzE(evt.true_beam_endPx*1000,
+                  evt.true_beam_endPy*1000,
+                  evt.true_beam_endPz*1000,
+                  sqrt(pow(evt.true_beam_endP*1000,2)+M_pion*M_pion));
+
+  for (size_t i = 0; i<evt.true_beam_daughter_PDG->size(); ++i){
+    int pdg = evt.true_beam_daughter_PDG->at(i);
+    double px = evt.true_beam_daughter_startPx->at(i)*1000;
+    double py = evt.true_beam_daughter_startPy->at(i)*1000;
+    double pz = evt.true_beam_daughter_startPz->at(i)*1000;
+    double p = sqrt(px*px+py*py+pz*pz);
+
+    if (abs(pdg) == 211){
+      double E = sqrt(p*p+M_pion*M_pion);
+      if (E>pion.E()){
+        pion.SetPxPyPzE(px,py,pz,E);
+      }
+    }
+    if (pdg == 2212){
+      double E = sqrt(p*p+M_proton*M_proton);
+      if (E>proton.E()){
+        proton.SetPxPyPzE(px,py,pz,E);
+      }
+    }
+  }
+
+  if (beam.E() && pion.E()){
+    QE_Q2 = -(beam - pion).Mag2()*1e-6; //GeV^2
+    QE_KEPi0 = beam.E() - M_pion;
+    QE_KEPi1 = pion.E() - M_pion;
+    QE_AngPi = pion.Vect().Angle(beam.Vect())*180/TMath::Pi();
+    QE_nu = beam.E() - pion.E();
+    QE_EQE = (pow(M_proton,2)-pow(M_proton-Eb,2)-pow(M_pion,2)+2*(M_proton-Eb)*pion.E())/2/(M_proton-Eb-pion.E()+pion.Vect()*beam.Vect()/beam.Vect().Mag());
+  }
+}
+
+void PionQE::CalRecoQEVars(Daughter pion){
+
+  double KE_hypfit_like = KE_Hypfit_Likelihood(pion, 211);
+  if (KE_hypfit_like<0) return;
+  double E = KE_hypfit_like+M_pion;
+  double p = sqrt(pow(E,2)-pow(M_pion,2));
+  TVector3 p_vec_pion(pion.allTrack_endX() - pion.allTrack_startX(), pion.allTrack_endY() - pion.allTrack_startY(), pion.allTrack_endZ() - pion.allTrack_startZ()); 
+  p_vec_pion = p_vec_pion.Unit();
+  double px = p*p_vec_pion.X();
+  double py = p*p_vec_pion.Y();
+  double pz = p*p_vec_pion.Z();
+  TLorentzVector Pion;
+  Pion.SetPxPyPzE(px, py, pz, E);
+  double beam_p = sqrt(pow(E_end_reco,2) - pow(M_pion,2));
+  double beam_px = beam_p * evt.reco_beam_trackDirX;
+  double beam_py = beam_p * evt.reco_beam_trackDirY;
+  double beam_pz = beam_p * evt.reco_beam_trackDirZ;
+  TLorentzVector Beam(beam_px, beam_py, beam_pz, E_end_reco);
+  recoQE_Q2 = -(Beam - Pion).Mag2()*1e-6; //GeV^2
+  recoQE_KEPi0 = Beam.E() - M_pion;
+  recoQE_KEPi1 = Pion.E() - M_pion;
+  recoQE_AngPi = Pion.Vect().Angle(Beam.Vect())*180/TMath::Pi();
+  recoQE_nu = Beam.E() - Pion.E();
+  double Eb = 4;
+  recoQE_EQE = (pow(M_proton,2)-pow(M_proton-Eb,2)-pow(M_pion,2)+2*(M_proton-Eb)*Pion.E())/2/(M_proton-Eb-Pion.E()+Pion.Vect()*Beam.Vect()/Beam.Vect().Mag());
 }
 
 PionQE::PionQE(){
