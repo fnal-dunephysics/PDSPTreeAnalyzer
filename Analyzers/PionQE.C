@@ -37,7 +37,8 @@ void PionQE::executeEvent(){
   KE_end_reco = map_BB[211]->KEAtLength(KE_ff_reco, evt.reco_beam_alt_len);
   E_end_reco = KE_end_reco + mass_beam;
   double P_reweight = 1.;
-  
+  if(!IsData) P_reweight = MCCorr -> MomentumReweight_SF("Pion_Calosize_0p5", P_beam_inst, 0.);
+
   if(!Pass_Beam_PID(211)) return;
   FillHist("beam_cut_flow", 3.5, 1., 20, 0., 20.);
   
