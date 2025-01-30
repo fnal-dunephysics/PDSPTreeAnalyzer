@@ -593,8 +593,15 @@ int AnalyzerCore::GetPi2ParType(){
           ++nmup;
         }
       }
-      if (npip || npim){
+      int npis = npip + npim + npi0;
+      if (npis > 1){
+	return pi2::kPiRes;
+      }
+      else if (npip){
         return pi2::kPiQE;
+      }
+      else if (npim){
+	return pi2::kPiDCEX;
       }
       else if (npi0){
         return pi2::kPiCEX;

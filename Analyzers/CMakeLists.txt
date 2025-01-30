@@ -15,6 +15,8 @@ set(SOURCES
   PionStudy.C
   Pion2Proton.C
   PionSkimTreeMaker.C
+  pionbeamsel.C
+  pionqe0p5.C
 )
 
 set(HDRFILES
@@ -33,6 +35,8 @@ set(HDRFILES
   PionStudy.h
   Pion2Proton.h
   PionSkimTreeMaker.h
+  pionbeamsel.h
+  pionqe0p5.h
 )
 
 # Create the shared library

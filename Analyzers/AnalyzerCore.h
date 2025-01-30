@@ -354,10 +354,12 @@ namespace pi{  const unsigned int nIntTypes = 9;
   };
 }
 
-namespace pi2{  const unsigned int nIntTypes = 12;
+namespace pi2{  const unsigned int nIntTypes = 14;
   const char intTypeName[nIntTypes+1][100] = {"Data",
 					      "PiElas",
+					      "PiRes",
 					      "PiQE",
+					      "PiDCEX",
                                               "PiABS",
                                               "PiCEX",
 					      "Muon",
@@ -370,7 +372,9 @@ namespace pi2{  const unsigned int nIntTypes = 12;
   enum intType{
     kData,
     kPiElas,
+    kPiRes,
     kPiQE,
+    kPiDCEX,
     kPiABS,
     kPiCEX,
     kMuon,

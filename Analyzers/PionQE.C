@@ -51,6 +51,42 @@ void PionQE::executeEvent(){
   FillBeamPlots("Beam_CaloSize", P_reweight);
   if (pi_type == pi2::kPiQE) FillQEPlots("QE_CaloSize");
 
+  // ==== truth level study
+  if(!IsData){
+    int	n_pip =	0;
+    int n_pim = 0;
+    int n_pi0 = 0;
+    for (size_t i = 0; i<evt.true_beam_daughter_PDG->size(); ++i){
+      int this_pdg = evt.true_beam_daughter_PDG->at(i);
+      if(this_pdg == 211) n_pip++;
+      if(this_pdg == -211) n_pim++;
+      if(this_pdg == 111) n_pi0++;
+    }
+
+    int n_pis = n_pip + n_pim + n_pi0;
+    FillHist("true_n_pis", n_pis, 1., 5., -0.5, 4.5);
+
+    /*
+    if(n_pis < 2) return;
+
+    cout << "=======" << endl;
+    int this_true_beam_PDG = evt.true_beam_PDG;
+    double this_true_beam_end_P = evt.true_beam_endP * 1000.;
+    double this_true_beam_mass = evt.true_beam_mass;
+    cout << "true_beam_PDG: " << this_true_beam_PDG << ", true_beam_mass: " << this_true_beam_mass << endl;
+    double this_true_beam_end_KE = pow(this_true_beam_end_P * this_true_beam_end_P + this_true_beam_mass * this_true_beam_mass, 0.5) - this_true_beam_mass;
+    cout << "true_beam_end_P: " << this_true_beam_end_P << ", true_beam_end_KE : " << this_true_beam_end_KE << endl;
+
+    for (size_t i = 0; i<evt.true_beam_daughter_PDG->size(); ++i){
+      int this_pdg = evt.true_beam_daughter_PDG->at(i);
+      double this_P = evt.true_beam_daughter_startP->at(i) * 1000.;
+      string this_proc = evt.true_beam_daughter_Process->at(i);
+      string this_end_proc = evt.true_beam_daughter_endProcess->at(i);
+      cout << "pdg: " << this_pdg << ", P: " << this_P << ", this_proc: " << this_proc << ", this_end_proc: " << this_end_proc << endl;
+    }
+    */
+  }
+
   if(!PassAPA3Cut()) return;
   FillHist("beam_cut_flow", 6.5, 1., 20, 0., 20.);
   FillBeamPlots("Beam_APA3", P_reweight);
@@ -65,6 +101,11 @@ void PionQE::executeEvent(){
   FillHist("beam_cut_flow", 8.5, 1., 20, 0., 20.);
   FillBeamPlots("Beam_KE_end", P_reweight);
   if (pi_type == pi2::kPiQE) FillQEPlots("QE_KE_end");
+
+  if(evt.reco_beam_calo_endZ < 10.) return;
+  FillHist("beam_cut_flow", 9.5, 1., 20, 0., 20.);
+  FillBeamPlots("Beam_endZ", P_reweight);
+  if (pi_type == pi2::kPiQE) FillQEPlots("QE_endZ");
 
   // == Functions to study beam
   //Run_beam_dEdx_vector();
